@@ -3,7 +3,7 @@ const Home = () => {
     <><>
       <div className="home-container">
         <h1>Gestion de vehiculos</h1>
-        <p>Bienvenido al sistema de gestión de vehiculos.</p>
+        <p>Bienvenido al sistema de gestión de inventario.</p>
         <p>Utiliza la barra de navegación superior para acceder a las diferentes secciones.</p>
       </div>
     </>

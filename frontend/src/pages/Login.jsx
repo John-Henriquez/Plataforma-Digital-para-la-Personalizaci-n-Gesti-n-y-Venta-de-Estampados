@@ -3,7 +3,6 @@ import { login } from '@services/auth.service.js';
 import Form from '@components/Form';
 import useLogin from '@hooks/auth/useLogin.jsx';
 import '@styles/form.css';
-import logo from '../assets/logo_muni.png'; 
 
 
 
@@ -33,10 +32,7 @@ const Login = () => {
 <main className="container">
     <Form
         title={
-            <div className="logo-container">
-            <img src={logo} alt="Escudo" className="logo" />
             <h1>Iniciar sesión</h1>
-        </div>
         }
         fields={[
             {

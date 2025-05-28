@@ -35,6 +35,11 @@ jobs:
       - name: Compilar frontend
         run: npm run build
         working-directory: frontend
+        continue-on-error: false
+      
+      - name: Verificar contenido de dist
+        run: ls -R
+        working-directory: frontend/dist
 
       - name: Subir archivos a GitHub Pages
         uses: actions/upload-pages-artifact@v3 
