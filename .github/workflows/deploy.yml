@@ -42,11 +42,10 @@ jobs:
         working-directory: frontend/dist
 
       - name: Subir archivos a GitHub Pages
-        uses: actions/upload-pages-artifact@v3 
+        uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/dist
-          name: github-pages
-
+          
   deploy:
     needs: build
     runs-on: ubuntu-latest
