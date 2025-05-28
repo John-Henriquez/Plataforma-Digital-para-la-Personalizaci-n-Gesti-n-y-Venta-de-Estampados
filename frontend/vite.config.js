@@ -7,6 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
+  base: '/Plataforma-Digital-para-la-Personalizaci-n-Gesti-n-y-Venta-de-Estampados/',
   plugins: [react()],
   preview: {port:443, host:true},
   resolve: {

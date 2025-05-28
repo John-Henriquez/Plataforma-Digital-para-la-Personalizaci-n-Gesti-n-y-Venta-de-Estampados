@@ -37,7 +37,7 @@ jobs:
         working-directory: frontend
 
       - name: Subir archivos a GitHub Pages
-        uses: actions/upload-pages-artifact@v3 # ⬅️ actualizado
+        uses: actions/upload-pages-artifact@v3 
         with:
           path: frontend/dist
           name: github-pages
