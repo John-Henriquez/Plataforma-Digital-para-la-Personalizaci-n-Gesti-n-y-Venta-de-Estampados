@@ -1,0 +1,14 @@
+.table-container .tabulator .tabulator-col {
+    background: #384B70;
+    color: #FCFAEE;
+}
+.tabulator .tabulator-footer .tabulator-page {
+    background-color: #FCFAEE;
+    color: black;
+    border: 1px solid #384B70;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+.tabulator .tabulator-footer .tabulator-page.active {
+    color: #E4332C;
+}
