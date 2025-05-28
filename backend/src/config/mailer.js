@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+/* import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 
 dotenv.config();
@@ -20,3 +20,4 @@ transporter.verify((error, success) => {
 });
 
 export default transporter;
+ */
