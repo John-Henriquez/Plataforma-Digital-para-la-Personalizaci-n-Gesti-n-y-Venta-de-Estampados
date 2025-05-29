@@ -43,8 +43,6 @@ Preparado para integrarse con el resto del sistema
 
 📁 Estructura del Backend
 ```bash
-Copiar
-Editar
 backend/
 ├── auth/         # Lógica de login, registro y manejo de tokens
 ├── middlewares/  # Validación de JWT y verificación de roles
