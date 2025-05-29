@@ -1,4 +1,6 @@
 Plataforma Digital para-la-Personalizacion, Gestion y Venta de Estampados
+
+
 🔐 Sistema de Autenticación – Proyecto en Progreso
 Este repositorio contiene el módulo inicial del sistema de autenticación para una futura plataforma de gestión de inventario, ventas y pedidos.
 Actualmente, el enfoque está en establecer una base sólida para el inicio de sesión, registro y control de acceso.
