@@ -1,129 +1,164 @@
 "use strict";
-import {
-  createItemStockService,
-  deleteItemStockService,
-  getAllItemStockService,
-  getItemStockService,
-  updateItemStockService,
-} from "../services/inventory.service.js";
+import { inventoryService } from "../services/inventory.service.js";
+import { handleErrorClient, handleErrorServer, handleSuccess } from "../handlers/responseHandlers.js";
+import Joi from "joi";
 
-import {
-  handleErrorClient,
-  handleErrorServer,
-  handleSuccess,
-} from "../handlers/responseHandlers.js";
+// Esquemas de validación
+const itemStockSchema = Joi.object({
+  itemTypeId: Joi.number().integer().required(),
+  color: Joi.string().required(),
+  hexColor: Joi.string().pattern(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
+  size: Joi.string().when("itemTypeId", {
+    is: Joi.number().integer(),
+    then: Joi.string().optional(),
+    otherwise: Joi.forbidden()
+  }),
+  quantity: Joi.number().integer().min(0).required(),
+  price: Joi.number().positive().required(),
+  images: Joi.alternatives().try(
+    Joi.array().items(Joi.string().uri()),
+    Joi.string().uri()
+  ).optional(),
+  minStock: Joi.number().integer().min(0).optional()
+});
 
-// Crear tipo de artículo
-export async function createItemType(req, res) {
+const itemStockUpdateSchema = Joi.object({
+  color: Joi.string().optional(),
+  hexColor: Joi.string().pattern(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
+  size: Joi.string().optional(),
+  quantity: Joi.number().integer().min(0).optional(),
+  price: Joi.number().positive().optional(),
+  images: Joi.array().items(Joi.string().uri()).optional(),
+  minStock: Joi.number().integer().min(0).optional(),
+  isActive: Joi.boolean().optional()
+});
+const itemTypeSchema = Joi.object({
+  name: Joi.string().required().min(3).max(100),
+  description: Joi.string().allow(" ").optional(),
+  category: Joi.string().valid("clothing", "object").required(),
+  hasSizes: Joi.boolean().default(false),
+  printingMethods: Joi.array().items(Joi.string()).optional(),
+  sizesAvailable: Joi.array().items(Joi.string()).when("hasSizes", {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  })
+});
+
+export const inventoryController = {
+
+  async createItemType(req, res) {
+    try {
+      const { error } = itemTypeSchema.validate(req.body);
+      if (error) {
+        return handleErrorClient(res, 400, "Error de validación", error.details);
+      }
+
+      const [newItemType, serviceError] = await inventoryService.createItemType(req.body);
+      if (serviceError) return handleErrorClient(res, 400, serviceError);
+      
+      handleSuccess(res, 201, "Tipo de ítem creado", newItemType);
+    } catch (error) {
+      handleErrorServer(res, 500, error.message);
+    }
+  },
+  async getItemTypes(req, res) {
+    try {
+      const [itemTypes, error] = await inventoryService.getItemTypes();
+      if (error) return handleErrorClient(res, 404, error);
+      
+      handleSuccess(res, 200, "Tipos de ítem obtenidos", itemTypes);
+    } catch (error) {
+      handleErrorServer(res, 500, error.message);
+    }
+  },
+  // Obtener stock con filtros
+async getItemStock(req, res) {
   try {
-    const { error } = itemTypeBodyValidation.validate(req.body);
-    if (error) return handleErrorClient(res, 400, "Error de validación", error.message);
+    const { id, itemTypeId, color, size } = req.query;
+    
+    // Validación de parámetros
+    if (id && isNaN(parseInt(id))) {
+      return handleErrorClient(res, 400, "ID debe ser un número");
+    }
 
-    const [created, serviceError] = await createItemTypeService(req.body);
-    if (serviceError) return handleErrorClient(res, 400, serviceError);
-
-    handleSuccess(res, 201, "Tipo de artículo creado", created);
+    const [items, error] = await inventoryService.getItemStock({
+      id: id ? parseInt(id) : undefined,
+      itemTypeId,
+      color,
+      size
+    });
+    
+    if (error) return handleErrorClient(res, 404, error);
+    
+    handleSuccess(res, 200, "Inventario obtenido", items);
   } catch (error) {
-    handleErrorServer(res, 500, error.message);
+    console.error("Error en getItemStock controller:", error);
+    handleErrorServer(res, 500, "Error interno del servidor");
   }
-}
+},
 
-// Obtener tipos de artículo
-export async function getItemTypes(req, res) {
-  try {
-    const [types, errorTypes] = await getItemTypesService();
-    if (errorTypes) return handleErrorClient(res, 404, errorTypes);
+  // Obtener stock público
+  async getPublicStock(req, res) {
+    try {
+      const [items, error] = await inventoryService.getItemStock({
+        publicOnly: true
+      });
+      
+      if (error) return handleErrorClient(res, 404, error);
+      handleSuccess(res, 200, "Inventario público obtenido", items);
+    } catch (error) {
+      handleErrorServer(res, 500, error.message);
+    }
+  },
 
-    types.length === 0
-      ? handleSuccess(res, 204)
-      : handleSuccess(res, 200, "Tipos de artículo encontrados", types);
-  } catch (error) {
-    handleErrorServer(res, 500, error.message);
+  // Crear item en inventario
+  async createItemStock(req, res) {
+    try {
+      const { error } = itemStockSchema.validate(req.body);
+      if (error) {
+        return handleErrorClient(res, 400, "Error de validación", error.details);
+      }
+
+      const [newItem, serviceError] = await inventoryService.createItemStock(req.body);
+      if (serviceError) return handleErrorClient(res, 400, serviceError);
+      
+      handleSuccess(res, 201, "Item creado en inventario", newItem);
+    } catch (error) {
+      handleErrorServer(res, 500, error.message);
+    }
+  },
+
+  // Actualizar item en inventario
+  async updateItemStock(req, res) {
+    try {
+      const { id } = req.params;
+      const { error } = itemStockUpdateSchema.validate(req.body);
+      
+      if (error) {
+        return handleErrorClient(res, 400, "Error de validación", error.details);
+      }
+
+      const [updatedItem, serviceError] = await inventoryService.updateItemStock(id, req.body);
+      if (serviceError) return handleErrorClient(res, 400, serviceError);
+      
+      handleSuccess(res, 200, "Item actualizado", updatedItem);
+    } catch (error) {
+      handleErrorServer(res, 500, error.message);
+    }
+  },
+
+  // Eliminar item (soft delete)
+  async deleteItemStock(req, res) {
+    try {
+      const { id } = req.params;
+      
+      const [result, error] = await inventoryService.deleteItemStock(id);
+      if (error) return handleErrorClient(res, 404, error);
+      
+      handleSuccess(res, 200, result.message, { id: result.id });
+    } catch (error) {
+      handleErrorServer(res, 500, error.message);
+    }
   }
-}
-
-// Crear stock
-export async function createItemStock(req, res) {
-  try {
-    const { error } = itemStockBodyValidation.validate(req.body);
-    if (error) return handleErrorClient(res, 400, "Error de validación", error.message);
-
-    const [created, serviceError] = await createItemStockService(req.body);
-    if (serviceError) return handleErrorClient(res, 400, serviceError);
-
-    handleSuccess(res, 201, "Stock creado", created);
-  } catch (error) {
-    handleErrorServer(res, 500, error.message);
-  }
-}
-
-// Obtener stock
-export async function getItemStock(req, res) {
-  try {
-    const { itemTypeId, color, size } = req.query;
-
-    const { error } = itemStockQueryValidation.validate({ itemTypeId, color, size });
-    if (error) return handleErrorClient(res, 400, "Error de validación en la consulta", error.message);
-
-    const [items, errorItems] = await getItemStockService({ itemTypeId, color, size });
-    if (errorItems) return handleErrorClient(res, 404, errorItems);
-
-    items.length === 0
-      ? handleSuccess(res, 204)
-      : handleSuccess(res, 200, "Stock encontrado", items);
-  } catch (error) {
-    handleErrorServer(res, 500, error.message);
-  }
-}
-
-// Obtener stock público (sin auth)
-export async function getItemStockPublic(req, res) {
-  try {
-    const [items, errorItems] = await getAllItemStockService();
-    if (errorItems) return handleErrorClient(res, 404, errorItems);
-
-    items.length === 0
-      ? handleSuccess(res, 204)
-      : handleSuccess(res, 200, "Stock público encontrado", items);
-  } catch (error) {
-    handleErrorServer(res, 500, error.message);
-  }
-}
-
-// Actualizar stock
-export async function updateItemStock(req, res) {
-  try {
-    const { id } = req.query;
-    const { body } = req;
-
-    const { error: queryError } = itemStockQueryValidation.validate({ id });
-    if (queryError) return handleErrorClient(res, 400, "Error en la consulta", queryError.message);
-
-    const { error: bodyError } = itemStockBodyValidation.validate(body);
-    if (bodyError) return handleErrorClient(res, 400, "Error en los datos enviados", bodyError.message);
-
-    const [updated, errorUpdated] = await updateItemStockService({ id }, body);
-    if (errorUpdated) return handleErrorClient(res, 400, errorUpdated);
-
-    handleSuccess(res, 200, "Stock actualizado", updated);
-  } catch (error) {
-    handleErrorServer(res, 500, error.message);
-  }
-}
-
-// Eliminar stock
-export async function deleteItemStock(req, res) {
-  try {
-    const { id } = req.query;
-
-    const { error } = itemStockQueryValidation.validate({ id });
-    if (error) return handleErrorClient(res, 400, "Error de validación", error.message);
-
-    const [deleted, errorDeleted] = await deleteItemStockService({ id });
-    if (errorDeleted) return handleErrorClient(res, 404, errorDeleted);
-
-    handleSuccess(res, 200, "Stock eliminado correctamente", deleted);
-  } catch (error) {
-    handleErrorServer(res, 500, error.message);
-  }
-}
+};

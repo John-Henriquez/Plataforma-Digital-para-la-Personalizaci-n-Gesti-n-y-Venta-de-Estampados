@@ -16,10 +16,42 @@ const ItemTypeSchema = new EntitySchema({
       unique: true,
       nullable: false,
     },
-    hasSize: {
-      type: "boolean",
-      default: false,
+    description: {
+      type: "text",
+      nullable: true,
+    },
+    category: {
+      type: "enum",
+      enum: ["clothing", "object"],
       nullable: false,
+    },
+    printingMethods: {
+      type: "simple-array",
+      nullable: true,
+      transformer: {
+        to: (value) => Array.isArray(value) ? value.join(",") : value,
+        from: (value) => typeof value === "string" ? value.split(",") : []
+      }
+    },
+    sizesAvailable: {
+      type: "simple-array",
+      nullable: true,
+      transformer: {
+        to: (value) => Array.isArray(value) ? value.join(",") : value,
+        from: (value) => typeof value === "string" ? value.split(",") : []
+      }
+    },
+    isActive: {
+      type: "boolean",
+      default: true,
+    },
+    createdAt: {
+      type: "timestamp",
+      createDate: true,
+    },
+    updatedAt: {
+      type: "timestamp",
+      updateDate: true,
     },
   },
   relations: {
