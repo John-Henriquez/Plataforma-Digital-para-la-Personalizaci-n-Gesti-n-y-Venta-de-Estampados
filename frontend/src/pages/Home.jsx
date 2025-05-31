@@ -2,8 +2,8 @@ const Home = () => {
   return (
     <><>
       <div className="home-container">
-        <h1>Gestion de vehiculos</h1>
-        <p>Bienvenido al sistema de gestión de inventario.</p>
+        <h1>Gestion de estampados</h1>
+        <p>Bienvenido al sistema de gestión de estampados.</p>
         <p>Utiliza la barra de navegación superior para acceder a las diferentes secciones.</p>
       </div>
     </>

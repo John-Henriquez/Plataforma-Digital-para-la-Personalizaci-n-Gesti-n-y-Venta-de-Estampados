@@ -1,12 +1,12 @@
 .error_404{
 	height: 100vh;
 	width: 100%;
-	background: linear-gradient(45deg, #384B70, #001a33); /*Color del fondo de la pagina de error (gradiente)*/
+	background: linear-gradient(45deg, #6A0DAD, #3A0D5F); /*Color del fondo de la pagina de error (gradiente)*/
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	.card{
-		background-color: #eef7ff;
+		background-color: #F4F4F4;
 		padding: 6.5vh;
 		border-radius: 24px;
 		display: flex;
@@ -16,20 +16,20 @@
 			margin: 0;
 			font-size: 120px;
 			font-weight: bold;
-			color: #384B70;
+			color: #6A0DAD;
 		}
 		h3{
 			margin: 0;
 			font-size: 24px;
 			font-weight: lighter;
-			color: #384B70;
+			color: #333333;
 		}
 		h4{
 			margin: 0;
 			padding-top: 2vh;
 			font-size: 14px;
 			font-weight: lighter;
-			color: #384B70;
+			color: #FF6F00;
 		}
 	}
 }

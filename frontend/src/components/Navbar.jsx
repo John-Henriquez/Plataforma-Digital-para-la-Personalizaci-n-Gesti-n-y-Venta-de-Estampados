@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { logout } from '@services/auth.service.js';
 import '@styles/navbar.css';
 import { useState, useEffect, useRef } from "react";
-import { IconMenu2, IconX, IconUser, IconLogout, IconHome, IconFile, IconPlus, IconUsers, IconDatabase, IconCar, IconSettings, IconId } from '@tabler/icons-react';
+import { IconMenu2, IconX, IconUser, IconLogout, IconHome, IconUsers, IconSettings } from '@tabler/icons-react';
 
 
 const Navbar = () => {
@@ -35,15 +35,10 @@ const Navbar = () => {
 
     const menuItems = [
         { to: "/home", text: "Inicio", icon: <IconHome /> },
-        { to: "/applications", text: "Solicitudes", icon: <IconFile /> },
-        { to: "/add-application", text: "Crear solicitud", icon: <IconPlus /> },
     ];
 
     const adminItems = [
         { to: "/users", text: "Usuarios", icon: <IconUsers /> },
-        { to: "/records", text: "Registros", icon: <IconDatabase /> },
-        { to: "/vehicles", text: "Vehículos", icon: <IconCar /> },
-        { to: "/drivers", text: "Conductores", icon: <IconId /> }
     ];
 
     return (

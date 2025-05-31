@@ -1,193 +1,134 @@
-@media (max-width: 480px) {
-    .form {
-        padding-left: 2px;
-		padding-right: 2px;
-        width: 90%;
-    }
-
-    .form h1 {
-        font-size: 24px;
-        margin-bottom: 2vh;
-    }
-
-    .form input, .form select {
-        padding: 10px;
-        font-size: 14px;
-    }
-
-    .form button {
-        padding: 10px;
-        font-size: 16px;
-    }
-
-    .form .footerContent {
-        font-size: 12px;
-    }
-    
-    .container {
-        padding: 0 10px;
-    }
-    
-    .toggle-password-icon {
-        width: 20px;
-        height: 20px;
-    }
-}
-
-
 .form {
-	background-color: #eef7ff; /*Color del formulario*/
+	background-color: #F4F4F4;
 	padding: 7vh;
 	display: flex;
 	flex-direction: column;
 	border-radius: 24px;
 	align-items: center;
 	position: relative;
+
 	h1 {
-		color: #384B70; /*Color del titulo del formulario*/
+		color: #6A0DAD;
 		font-size: 30px;
 		font-weight: bold;
 		margin: 0;
 		margin-bottom: 4vh;
 	}
+
 	div {
 		width: 100%;
 		display: flex;
+		flex-direction: column;
 	}
+
 	label {
-		color: #384B70; /*Color label de inputs del formulario*/
+		color: #6A0DAD;
 		font-weight: bold;
 		margin-bottom: 0.7vh;
 	}
-	input {
+
+	input, select, textarea {
 		display: flex;
-		border: 3px solid #384B70; /*Color del borde de inputs del formulario*/
+		border: 3px solid #6A0DAD;
 		border-radius: 12px;
 		padding: 8px 5px;
 		background-repeat: no-repeat;
 		margin-bottom: 0.8vh;
-		background-color: #eef7ff;
-		font-weight: regular;
+		background-color: #F4F4F4;
 		font-size: 16px;
-		color: #384B70;
-		border-radius: 12px;
+		color: #333333;
 		background-position: right 10px center;
 		background-size: 25px 25px;
 		box-sizing: border-box;
 	}
-	input::placeholder {
-		color: rgba(0, 51, 102, 0.3);
-		font-weight: light;
-	}
-	input:focus {
-		background-color: rgba(0, 110, 223, 0.14);
-		font-weight: regular;
-	}
-	select {
-		display: flex;
-		border: 3px solid #384B70; /*Color del borde de selects del formulario*/
-		border-radius: 12px;
-		padding: 8px 5px;
-		background-repeat: no-repeat;
-		margin-bottom: 0.8vh;
-		background-color: #eef7ff;
-		font-weight: regular;
-		font-size: 16px;
-		color: #384B70;
-		border-radius: 12px;
-		background-position: right 30px center;
-		background-size: 25px 25px;
-		box-sizing: border-box;
-		background-image: url('../assets/ChevronDownIcon.svg');
-		background-repeat: no-repeat;
-		background-position: calc(100% - 12px) center;
-		-webkit-appearance: none;
-		-moz-appearance: none;
-		appearance: none;
-	}
-	select::placeholder {
-		color: rgba(0, 51, 102, 0.3);
-		font-weight: light;
-	}
-	select:focus {
-		background-color: rgba(0, 110, 223, 0.14);
-		font-weight: regular;
-	}
-	textarea {
-		display: flex;
-		border: 3px solid #384B70; /*Color del borde de textareas del formulario*/
-		border-radius: 12px;
-		padding: 8px 5px;
-		background-repeat: no-repeat;
-		margin-bottom: 0.8vh;
-		background-color: #eef7ff;
-		font-weight: regular;
-		font-size: 16px;
-		color: #384B70;
-		border-radius: 12px;
-		background-position: right 10px center;
-		background-size: 25px 25px;
-		box-sizing: border-box;
-	}
+
+	input::placeholder,
+	select::placeholder,
 	textarea::placeholder {
-		color: rgba(0, 51, 102, 0.3);
+		color: rgba(106, 13, 173, 0.4);
 		font-weight: light;
 	}
+
+	input:focus,
+	select:focus,
 	textarea:focus {
-		background-color: rgba(0, 110, 223, 0.14);
+		background-color: rgba(106, 13, 173, 0.1);
 		font-weight: regular;
 	}
+
 	button {
-		padding: auto;
+		padding: 1.2vh 0;
 		display: flex;
 		justify-content: center;
-		padding: 1.2vh 0;
 		border-radius: 12px;
-		border: none;
+		border: 3px solid #6A0DAD;
 		width: 100%;
-		background-color: #384B70; /*Color del boton del formulario*/
-		color: #eef7ff;
+		background-color: #6A0DAD;
+		color: #F4F4F4;
 		font-weight: bold;
 		font-size: 16px;
-		border: 3px solid #384B70; /*Color del borde del boton*/
 		margin-top: 10px;
+		cursor: pointer;
 	}
-	button:hover{
-		border: 3px solid #384B70;
-		background-color: #eef7ff;
-		color: #384B70;
+
+	button:hover {
+		background-color: #F4F4F4;
+		color: #6A0DAD;
 		transition: .3s ease-out;
 	}
-	div {
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-	}
+
 	.footerContent {
 		display: flex;
 		align-items: center;
 		margin-top: 10px;
+		font-size: 12px;
+		color: #6A0DAD;
 	}
-}
-.form .error-message {
-    visibility: hidden;
-    height: 20px;
-    color: red;
-    font-size: 13px;
-	padding-left: 5px;
-}
-.form .error-message.visible {
-    visibility: visible;
 }
 
 .container {
-	height: 100vh;	
-	background: linear-gradient(#003366,#eef7ff); /*Color principal para login (gradiente)*/
+	height: 100vh;
+	background: linear-gradient(#6A0DAD, #D1B2FF);
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	padding: 20px;
+}
 
+.form .error-message {
+	visibility: hidden;
+	height: 20px;
+	color: red;
+	font-size: 13px;
+	padding-left: 5px;
+}
+
+.form .error-message.visible {
+	visibility: visible;
+}
+
+@media (max-width: 480px) {
+	.form {
+		padding-left: 2px;
+		padding-right: 2px;
+		width: 90%;
+	}
+
+	.form h1 {
+		font-size: 24px;
+		margin-bottom: 2vh;
+	}
+
+	.form input,
+	.form select {
+		padding: 10px;
+		font-size: 14px;
+	}
+
+	.form button {
+		padding: 10px;
+		font-size: 16px;
+	}
 }
 
 input[type='email'] {
@@ -204,53 +145,47 @@ input[name='nombreCompleto'] {
 
 input[name='rol'] {
 	background-image: url('../assets/PasskeyIcon.svg');
-	
 }
 
 .container_inputs {
-    position: relative;
-    margin-bottom: 5px;
+	position: relative;
+	margin-bottom: 5px;
 }
 
 input {
-    padding-right: 40px;
-    width: 100%;
+	padding-right: 40px;
+	width: 100%;
 }
 
 .toggle-password-icon {
-    position: absolute;
-    right: 15px;
-    top: 44%;
-    transform: translateY(-50%);
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
+	position: absolute;
+	right: 15px;
+	top: 44%;
+	transform: translateY(-50%);
+	width: 25px;
+	height: 25px;
+	cursor: pointer;
 }
 
-.newPassword span {
-	top: 10px;
-}
-
-.toggle-password-icon img{
+.toggle-password-icon img {
 	width: 25px;
 	height: 25px;
 	margin-top: 4px;
 }
 
 .logo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    margin-bottom: 2vh;
-    width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	margin-bottom: 2vh;
+	width: 100%;
 }
+
 .logo {
-    width: 100%;
-    max-width: 120px;
-    height: auto;
-    margin-bottom: 2vh;
+	width: 100%;
+	max-width: 120px;
+	height: auto;
+	margin-bottom: 2vh;
 }
-
-
