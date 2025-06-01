@@ -3,7 +3,7 @@
     width: 100%;
     top: 0;
     left: 0;
-    background: linear-gradient(45deg, #384B70, #001a33);
+    background: linear-gradient(45deg, #6A0DAD, #3D004D);
     height: 9vh;
     z-index: 1000;
     display: flex;
@@ -40,10 +40,10 @@
     align-items: center;
     position: relative;
 }
+
 .desktop-menu li:last-child {
     margin-right: 2vw;  
 }
-
 
 .desktop-menu a {
     color: white;
@@ -65,7 +65,7 @@
     left: 0;
     width: 100%;
     height: 3px;
-    background-color: #006edf;
+    background-color: #FF6A00;
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -76,15 +76,14 @@
 
 .desktop-menu .active {
     font-weight: bold;
-    background-color: #eef7ff;
-    color: #002651;
+    background-color: #FFE3CC;
+    color: #6A0DAD;
 }
 
 .desktop-menu .active svg {
-    stroke: #002651;
+    stroke: #6A0DAD;
 }
 
-/* Dropdown styles */
 .dropdown {
     position: relative;
     height: 100%;
@@ -94,7 +93,6 @@
     display: flex;
 }
 
-/* Botón del dropdown */
 .dropdown-toggle {
     background: none;
     border: none;
@@ -114,7 +112,6 @@
     margin-left: 0.3rem;
 }
 
-/* Estilos del menú desplegable */
 .dropdown-menu {
     position: absolute;
     top: 100%;
@@ -129,13 +126,10 @@
     white-space: nowrap;
     min-width: max-content; 
     z-index: 1000;
-
-    /* Centrar el dropdown si hay espacio */
     left: 0;
     transform: translateX(-50%);
 }
 
-/* Ajuste si el menú se desborda a la derecha */
 @media (max-width: 1200px) {
     .dropdown-menu {
         left: auto;
@@ -144,9 +138,8 @@
     }
 }
 
-/* Estilos para los elementos dentro del dropdown */
 .dropdown-menu a {
-    color: #384B70;
+    color: #6A0DAD;
     padding: 0.8rem 1.5rem;
     font-size: 0.9em;
     height: auto;
@@ -157,14 +150,14 @@
 }
 
 .dropdown-menu a:hover {
-    background: #f0f0f0;
+    background: #FFF0E6;
 }
 
 .dropdown-menu a.active {
-    background: #eef7ff;
+    background: #FFE3CC;
+    color: #6A0DAD;
 }
 
-/* Mobile Menu */
 .mobile-menu {
     position: fixed;
     top: 0;
@@ -192,7 +185,7 @@
 }
 
 .mobile-menu a {
-    color: #384B70;
+    color: #6A0DAD;
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -202,8 +195,8 @@
 }
 
 .mobile-menu a.active {
-    background: #eef7ff;
-    color: #002651;
+    background: #FFE3CC;
+    color: #6A0DAD;
 }
 
 .close-menu {
@@ -216,14 +209,14 @@
 }
 
 .close-menu svg {
-    stroke: #384B70;
+    stroke: #6A0DAD;
 }
 
 .logout-button {
     margin-top: 2rem;
     width: 100%;
     padding: 1rem;
-    background: #006edf;
+    background: #FF6A00;
     color: white;
     border: none;
     border-radius: 4px;
@@ -236,7 +229,7 @@
 }
 
 .logout-button:hover {
-    background: #0056b3;
+    background: #E65C00;
 }
 
 .hamburger {
@@ -290,5 +283,5 @@
 }
 
 .navbar-button.logout:hover {
-    background-color: #0056b3;
+    background-color: #E65C00;
 }
