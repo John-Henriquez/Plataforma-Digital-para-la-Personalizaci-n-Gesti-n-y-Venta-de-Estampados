@@ -6,7 +6,6 @@ import Users from '@pages/Users';
 import Register from '@pages/Register';
 import Error404 from '@pages/Error404';
 import Root from '@pages/Root';
-import Catalogo from '@pages/Catalogo';
 import ProtectedRoute from '@components/ProtectedRoute';
 import '@styles/styles.css';
 
@@ -16,10 +15,6 @@ const router = createBrowserRouter([
     element: <Root />,
     errorElement: <Error404 />,
     children: [
-      {
-        index: true,           
-        element: <Catalogo />  
-      },
       {
         path: '/home',
         element: <Home />

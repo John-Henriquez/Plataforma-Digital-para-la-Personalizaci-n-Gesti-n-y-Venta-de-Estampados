@@ -42,11 +42,18 @@ export const inventoryService = {
         where: { isActive: true },
         order: { name: "ASC" }
       });
+        const mewIteType = repo.create({
+        name: "Nuevo Tipo",
+        description: "Descripción del nuevo tipo",
+        category: "clothing",
+        hasSizes: false,
+        printingMethods: [],
+        sizesAvailable: []
+      });
       
       if (!itemTypes || itemTypes.length === 0) {
-        return [null, "No se encontraron tipos de ítem"];
+        return [[], null];
       }
-      
       return [itemTypes, null];
     } catch (error) {
       console.error("Error en getItemTypes:", error);
@@ -75,7 +82,9 @@ async createItemStock(itemData) {
     }
 
     // Asegurar que images sea un array
-    const processedImages = Array.isArray(images) ? images : (images ? [images] : []);
+    const processedImages = Array.isArray(images)
+  ? images.filter(url => url) 
+  : (images ? [images] : []);
 
     const newItem = itemStockRepo.create({
       color,
@@ -109,6 +118,11 @@ async getItemStock(filters = {}) {
       where.size = filters.size === "N/A" ? null : filters.size;
     }
     if (filters.publicOnly) where.isActive = true;
+    if (filters.size === "N/A") {
+  where.size = null;
+} else if (filters.size) {
+  where.size = filters.size;
+}
 
     const items = await repo.find({
       where,
@@ -120,19 +134,12 @@ async getItemStock(filters = {}) {
       return [null, "No se encontraron items con los filtros proporcionados"];
     }
 
-    // Procesar imágenes para asegurar que siempre sean arrays
-    const processedItems = items.map(item => ({
-      ...item,
-      images: Array.isArray(item.images) ? item.images : (item.images ? [item.images] : [])
-    }));
-
-    return [processedItems, null];
+    return [items, null];
   } catch (error) {
     console.error("Error detallado en getItemStock:", error);
     return [null, "Error al obtener el inventario"];
   }
 },
-
   // UPDATE ITEM STOCK
   async updateItemStock(id, updateData) {
     try {
@@ -154,7 +161,6 @@ async getItemStock(filters = {}) {
         }
       });
 
-      item.updatedAt = new Date();
       const updatedItem = await repo.save(item);
       return [updatedItem, null];
     } catch (error) {
@@ -162,7 +168,6 @@ async getItemStock(filters = {}) {
       return [null, "Error al actualizar el item de inventario"];
     }
   },
-
   // DELETE ITEM STOCK (soft delete)
   async deleteItemStock(id) {
     try {

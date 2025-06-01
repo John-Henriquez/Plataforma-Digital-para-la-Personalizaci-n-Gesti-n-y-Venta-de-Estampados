@@ -15,10 +15,7 @@ const itemStockSchema = Joi.object({
   }),
   quantity: Joi.number().integer().min(0).required(),
   price: Joi.number().positive().required(),
-  images: Joi.alternatives().try(
-    Joi.array().items(Joi.string().uri()),
-    Joi.string().uri()
-  ).optional(),
+  images: Joi.array().items(Joi.string().uri()).min(1).optional(),
   minStock: Joi.number().integer().min(0).optional()
 });
 
@@ -37,11 +34,11 @@ const itemTypeSchema = Joi.object({
   description: Joi.string().allow(" ").optional(),
   category: Joi.string().valid("clothing", "object").required(),
   hasSizes: Joi.boolean().default(false),
-  printingMethods: Joi.array().items(Joi.string()).optional(),
-  sizesAvailable: Joi.array().items(Joi.string()).when("hasSizes", {
+  printingMethods: Joi.array().items(Joi.string().min(1)).optional(),
+  sizesAvailable: Joi.array().items(Joi.string().min(1)).min(1).when("hasSizes", {
     is: true,
     then: Joi.required(),
-    otherwise: Joi.optional()
+    otherwise: Joi.optional().empty(Joi.array().length(0))
   })
 });
 
@@ -62,6 +59,7 @@ export const inventoryController = {
       handleErrorServer(res, 500, error.message);
     }
   },
+
   async getItemTypes(req, res) {
     try {
       const [itemTypes, error] = await inventoryService.getItemTypes();
@@ -72,6 +70,7 @@ export const inventoryController = {
       handleErrorServer(res, 500, error.message);
     }
   },
+
   // Obtener stock con filtros
 async getItemStock(req, res) {
   try {
@@ -97,7 +96,6 @@ async getItemStock(req, res) {
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 },
-
   // Obtener stock público
   async getPublicStock(req, res) {
     try {
@@ -111,7 +109,6 @@ async getItemStock(req, res) {
       handleErrorServer(res, 500, error.message);
     }
   },
-
   // Crear item en inventario
   async createItemStock(req, res) {
     try {

@@ -37,18 +37,6 @@ const ItemStockSchema = new EntitySchema({
     images: {
       type: "jsonb",
       nullable: true,
-      transformer: {
-        to: (value) => value ? JSON.stringify(value) : null,
-        from: (value) => {
-          if (!value) return [];
-          try {
-            const parsed = JSON.parse(value);
-            return Array.isArray(parsed) ? parsed : [parsed];
-          } catch {
-            return [];
-          }
-        }
-      }
     },
     minStock: {
       type: "int",

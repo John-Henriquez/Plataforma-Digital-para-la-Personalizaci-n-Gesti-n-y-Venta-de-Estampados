@@ -27,19 +27,11 @@ const ItemTypeSchema = new EntitySchema({
     },
     printingMethods: {
       type: "simple-array",
-      nullable: true,
-      transformer: {
-        to: (value) => Array.isArray(value) ? value.join(",") : value,
-        from: (value) => typeof value === "string" ? value.split(",") : []
-      }
+      nullable: true
     },
     sizesAvailable: {
       type: "simple-array",
-      nullable: true,
-      transformer: {
-        to: (value) => Array.isArray(value) ? value.join(",") : value,
-        from: (value) => typeof value === "string" ? value.split(",") : []
-      }
+      nullable: true
     },
     isActive: {
       type: "boolean",
@@ -52,6 +44,11 @@ const ItemTypeSchema = new EntitySchema({
     updatedAt: {
       type: "timestamp",
       updateDate: true,
+    },
+    hasSizes: {  
+      type: "boolean",
+      default: false,
+      nullable: false
     },
   },
   relations: {
