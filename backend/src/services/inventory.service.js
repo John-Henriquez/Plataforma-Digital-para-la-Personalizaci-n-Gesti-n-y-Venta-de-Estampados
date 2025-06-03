@@ -1,4 +1,3 @@
-"use strict";
 import { AppDataSource } from "../config/configDb.js";
 import ItemType from "../entity/itemType.entity.js";
 import ItemStock from "../entity/itemStock.entity.js";
@@ -8,8 +7,7 @@ export const inventoryService = {
   async createItemType(itemTypeData) {
     try {
       const repo = AppDataSource.getRepository(ItemType);
-      
-      // Verificar si ya existe un tipo con el mismo nombre
+
       const existingType = await repo.findOne({ 
         where: { name: itemTypeData.name } 
       });
@@ -34,7 +32,7 @@ export const inventoryService = {
       return [null, "Error al crear el tipo de ítem"];
     }
   },
-  // GET ALL ITEM TYPES
+
   async getItemTypes() {
     try {
       const repo = AppDataSource.getRepository(ItemType);
@@ -42,15 +40,6 @@ export const inventoryService = {
         where: { isActive: true },
         order: { name: "ASC" }
       });
-        const mewIteType = repo.create({
-        name: "Nuevo Tipo",
-        description: "Descripción del nuevo tipo",
-        category: "clothing",
-        hasSizes: false,
-        printingMethods: [],
-        sizesAvailable: []
-      });
-      
       if (!itemTypes || itemTypes.length === 0) {
         return [[], null];
       }
@@ -59,15 +48,21 @@ export const inventoryService = {
       console.error("Error en getItemTypes:", error);
       return [null, "Error al obtener los tipos de ítem"];
     }
-  },
-  // GET ITEM STOCK WITH FILTERS
-async createItemStock(itemData) {
-  try {
-    const { itemTypeId, color, hexColor, size, quantity, price, images, minStock } = itemData;
-    const itemStockRepo = AppDataSource.getRepository(ItemStock);
-    const itemTypeRepo = AppDataSource.getRepository(ItemType);
+    },
 
-    // Verificar tipo de item
+async createItemStock(itemData) {
+  return await AppDataSource.transaction(async transactionalEntityManager => {
+    const { itemTypeId, color, hexColor, size, quantity, price, images, minStock } = itemData;
+    const itemStockRepo = transactionalEntityManager.getRepository(ItemStock);
+    const itemTypeRepo = transactionalEntityManager.getRepository(ItemType);
+
+    if (!itemTypeId || !color || !hexColor || quantity == null || price == null) {
+      return [null, "Faltan campos obligatorios"];
+    }
+    if (quantity < 0 || price < 0) {
+      return [null, "La cantidad y el precio deben ser no negativos"];
+    }
+
     const itemType = await itemTypeRepo.findOne({ 
       where: { id: itemTypeId, isActive: true } 
     });
@@ -76,15 +71,20 @@ async createItemStock(itemData) {
       return [null, "Tipo de artículo no encontrado o inactivo"];
     }
 
-    // Validar talla si el tipo requiere
     if (itemType.hasSizes && !size) {
       return [null, "Este tipo de artículo requiere especificar talla"];
     }
 
-    // Asegurar que images sea un array
+    const urlRegex = /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif))$/i;
     const processedImages = Array.isArray(images)
-  ? images.filter(url => url) 
-  : (images ? [images] : []);
+      ? images.filter(url => url && urlRegex.test(url))
+      : (images && urlRegex.test(images) ? [images] : []);
+
+    const MIN_STOCK_DEFAULTS = {
+      clothing: 10,
+      default: 20
+    };
+    const minStockValue = minStock || MIN_STOCK_DEFAULTS[itemType.category] || MIN_STOCK_DEFAULTS.default;
 
     const newItem = itemStockRepo.create({
       color,
@@ -93,82 +93,86 @@ async createItemStock(itemData) {
       quantity,
       price,
       images: processedImages,
-      minStock: minStock || (itemType.category === "clothing" ? 10 : 20),
+      minStock: minStockValue,
       itemType
     });
 
     const savedItem = await itemStockRepo.save(newItem);
     return [savedItem, null];
-  } catch (error) {
-    console.error("Error en createItemStock:", error);
-    return [null, "Error al crear el item en inventario"];
-  }
-  },
-  // CREATE ITEM STOCK
-async getItemStock(filters = {}) {
-  try {
-    const repo = AppDataSource.getRepository(ItemStock);
-    
-    // Construcción segura del objeto where
-    const where = {};
-    if (filters.id) where.id = filters.id;
-    if (filters.itemTypeId) where.itemType = { id: filters.itemTypeId };
-    if (filters.color) where.color = filters.color;
-    if (filters.size !== undefined) {
-      where.size = filters.size === "N/A" ? null : filters.size;
-    }
-    if (filters.publicOnly) where.isActive = true;
-    if (filters.size === "N/A") {
-  where.size = null;
-} else if (filters.size) {
-  where.size = filters.size;
-}
-
-    const items = await repo.find({
-      where,
-      relations: ["itemType"],
-      order: { createdAt: "DESC" }
-    });
-
-    if (!items || items.length === 0) {
-      return [null, "No se encontraron items con los filtros proporcionados"];
-    }
-
-    return [items, null];
-  } catch (error) {
-    console.error("Error detallado en getItemStock:", error);
-    return [null, "Error al obtener el inventario"];
-  }
+  }).catch(error => {
+    console.error("Error en createItemStock:", error.message, error.stack);
+    return [null, `Error al crear el item en inventario: ${error.message}`];
+  });
 },
-  // UPDATE ITEM STOCK
-  async updateItemStock(id, updateData) {
+
+  async getItemStock(filters = {}) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
-      const item = await repo.findOne({ 
-        where: { id },
-        relations: ["itemType"]
-      });
-
-      if (!item) {
-        return [null, "Item de inventario no encontrado"];
+      
+      const where = {};
+      if (filters.id) where.id = filters.id;
+      if (filters.itemTypeId) where.itemType = { id: filters.itemTypeId };
+      if (filters.color) where.color = filters.color;
+      if (filters.publicOnly) where.isActive = true;
+      if (filters.size !== undefined) {
+        where.size = filters.size === "N/A" ? null : filters.size;
       }
 
-      // Actualizar solo campos permitidos
-      const updatableFields = ["color", "hexColor", "size", "quantity", "price", "images", "minStock", "isActive"];
-      updatableFields.forEach(field => {
-        if (updateData[field] !== undefined) {
-          item[field] = updateData[field];
-        }
+      const items = await repo.find({
+        where,
+        relations: ["itemType"],
+        order: { createdAt: "DESC" }
       });
 
-      const updatedItem = await repo.save(item);
-      return [updatedItem, null];
+      if (!items || items.length === 0) {
+        return [[], null];
+      }
+
+      return [items, null];
     } catch (error) {
-      console.error("Error en updateItemStock:", error);
-      return [null, "Error al actualizar el item de inventario"];
+      console.error("Error detallado en getItemStock:", error);
+      return [null, "Error al obtener el inventario"];
     }
   },
-  // DELETE ITEM STOCK (soft delete)
+
+  async updateItemStock(id, updateData) {
+  try {
+    const repo = AppDataSource.getRepository(ItemStock);
+    const item = await repo.findOne({ 
+      where: { id },
+      relations: ["itemType"]
+    });
+
+    if (!item) {
+      return [null, "Item de inventario no encontrado"];
+    }
+
+    // Validar campos actualizados
+    if (updateData.quantity !== undefined && updateData.quantity < 0) {
+      return [null, "La cantidad no puede ser negativa"];
+    }
+    if (updateData.price !== undefined && updateData.price < 0) {
+      return [null, "El precio no puede ser negativo"];
+    }
+    if (updateData.size !== undefined && item.itemType.hasSizes && !updateData.size) {
+      return [null, "Este tipo de artículo requiere especificar talla"];
+    }
+
+    const updatableFields = ["color", "hexColor", "size", "quantity", "price", "images", "minStock", "isActive"];
+    updatableFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        item[field] = updateData[field];
+      }
+    });
+
+    const updatedItem = await repo.save(item);
+    return [updatedItem, null];
+  } catch (error) {
+    console.error("Error en updateItemStock:", error.message, error.stack);
+    return [null, `Error al actualizar el item de inventario: ${error.message}`];
+  }
+},
+
   async deleteItemStock(id) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);

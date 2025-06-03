@@ -1,8 +1,9 @@
-import axios from './root.service'; // Asegúrate de que la ruta sea correcta
+import axios from './root.service'; 
 
 export async function getItemTypes() {
     try {
         const { data } = await axios.get('/inventory/types');
+        /* console.log('[SERVICE] ✅ getItemTypes: respuesta recibida:', data); */
         return data.data || [];
     } catch (error) {
         console.error('Error fetching item types:', error);
@@ -10,9 +11,10 @@ export async function getItemTypes() {
     }
 }
 
-export async function getItemStock(params = {}) {
+export async function getItemStock() {
     try {
-        const { data } = await axios.get('/inventory/stocks', { params });
+        const { data } = await axios.get('/inventory/stocks');
+        /* console.log('[SERVICE] ✅ getItemStock: respuesta recibida:', data); */
         return data.data || [];
     } catch (error) {
         console.error('Error fetching item stock:', error);

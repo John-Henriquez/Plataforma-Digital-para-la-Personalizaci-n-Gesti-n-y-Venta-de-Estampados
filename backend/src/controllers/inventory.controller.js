@@ -1,4 +1,3 @@
-"use strict";
 import { inventoryService } from "../services/inventory.service.js";
 import { handleErrorClient, handleErrorServer, handleSuccess } from "../handlers/responseHandlers.js";
 import Joi from "joi";
@@ -8,11 +7,7 @@ const itemStockSchema = Joi.object({
   itemTypeId: Joi.number().integer().required(),
   color: Joi.string().required(),
   hexColor: Joi.string().pattern(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
-  size: Joi.string().when("itemTypeId", {
-    is: Joi.number().integer(),
-    then: Joi.string().optional(),
-    otherwise: Joi.forbidden()
-  }),
+  size: Joi.string().optional(),
   quantity: Joi.number().integer().min(0).required(),
   price: Joi.number().positive().required(),
   images: Joi.array().items(Joi.string().uri()).min(1).optional(),
@@ -43,7 +38,6 @@ const itemTypeSchema = Joi.object({
 });
 
 export const inventoryController = {
-
   async createItemType(req, res) {
     try {
       const { error } = itemTypeSchema.validate(req.body);
@@ -71,45 +65,52 @@ export const inventoryController = {
     }
   },
 
-  // Obtener stock con filtros
-async getItemStock(req, res) {
-  try {
-    const { id, itemTypeId, color, size } = req.query;
-    
-    // Validación de parámetros
-    if (id && isNaN(parseInt(id))) {
-      return handleErrorClient(res, 400, "ID debe ser un número");
-    }
-
-    const [items, error] = await inventoryService.getItemStock({
-      id: id ? parseInt(id) : undefined,
-      itemTypeId,
-      color,
-      size
-    });
-    
-    if (error) return handleErrorClient(res, 404, error);
-    
-    handleSuccess(res, 200, "Inventario obtenido", items);
-  } catch (error) {
-    console.error("Error en getItemStock controller:", error);
-    handleErrorServer(res, 500, "Error interno del servidor");
-  }
-},
-  // Obtener stock público
-  async getPublicStock(req, res) {
+  async getItemStock(req, res) {
     try {
+      const { id, itemTypeId, color, size } = req.query;
+      
+      if (itemTypeId && isNaN(parseInt(itemTypeId))) {
+        return handleErrorClient(res, 400, "itemTypeId debe ser un número");
+      }
+
       const [items, error] = await inventoryService.getItemStock({
-        publicOnly: true
+        id: id ? parseInt(id) : undefined,
+        itemTypeId,
+        color,
+        size
       });
       
       if (error) return handleErrorClient(res, 404, error);
-      handleSuccess(res, 200, "Inventario público obtenido", items);
+      
+      handleSuccess(res, 200, "Inventario obtenido", items);
     } catch (error) {
-      handleErrorServer(res, 500, error.message);
+      console.error("Error en getItemStock controller:", error.message, error.stack);
+      handleErrorServer(res, 500, "Error interno del servidor");
     }
   },
-  // Crear item en inventario
+
+  async getPublicStock(req, res) {
+    try {
+      const { itemTypeId, color, size } = req.query;
+      if (itemTypeId && isNaN(parseInt(itemTypeId))) {
+        return handleErrorClient(res, 400, "itemTypeId debe ser un número");
+      }
+
+      const [items, error] = await inventoryService.getItemStock({
+        publicOnly: true,
+        itemTypeId: itemTypeId ? parseInt(itemTypeId) : undefined,
+        color,
+        size
+      });
+      
+      if (error) return handleErrorClient(res, 500, error);
+      handleSuccess(res, 200, "Inventario público obtenido", items);
+    } catch (error) {
+      console.error("Error en getPublicStock controller:", error.message, error.stack);
+      handleErrorServer(res, 500, `Error interno del servidor: ${error.message}`);
+    }
+  },
+
   async createItemStock(req, res) {
     try {
       const { error } = itemStockSchema.validate(req.body);
@@ -126,26 +127,28 @@ async getItemStock(req, res) {
     }
   },
 
-  // Actualizar item en inventario
-  async updateItemStock(req, res) {
-    try {
-      const { id } = req.params;
-      const { error } = itemStockUpdateSchema.validate(req.body);
-      
-      if (error) {
-        return handleErrorClient(res, 400, "Error de validación", error.details);
-      }
-
-      const [updatedItem, serviceError] = await inventoryService.updateItemStock(id, req.body);
-      if (serviceError) return handleErrorClient(res, 400, serviceError);
-      
-      handleSuccess(res, 200, "Item actualizado", updatedItem);
-    } catch (error) {
-      handleErrorServer(res, 500, error.message);
+async updateItemStock(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id || isNaN(parseInt(id))) {
+      return handleErrorClient(res, 400, "ID debe ser un número");
     }
-  },
 
-  // Eliminar item (soft delete)
+    const { error } = itemStockUpdateSchema.validate(req.body);
+    if (error) {
+      return handleErrorClient(res, 400, "Error de validación", error.details);
+    }
+
+    const [updatedItem, serviceError] = await inventoryService.updateItemStock(parseInt(id), req.body);
+    if (serviceError) return handleErrorClient(res, 400, serviceError);
+    
+    handleSuccess(res, 200, "Item actualizado", updatedItem);
+  } catch (error) {
+    console.error("Error en updateItemStock controller:", error.message, error.stack);
+    handleErrorServer(res, 500, `Error interno del servidor: ${error.message}`);
+  }
+},
+
   async deleteItemStock(req, res) {
     try {
       const { id } = req.params;

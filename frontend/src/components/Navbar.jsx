@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { logout } from '@services/auth.service.js';
 import '@styles/navbar.css';
 import { useState, useEffect, useRef } from "react";
-import { IconMenu2, IconX, IconUser, IconLogout, IconHome, IconUsers, IconSettings } from '@tabler/icons-react';
+import { IconMenu2, IconX, IconUser, IconLogout, IconHome, IconUsers, IconSettings, IconPackage } from '@tabler/icons-react';
 
 
 const Navbar = () => {
@@ -12,7 +12,6 @@ const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
-    // Cerrar menú al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -39,6 +38,7 @@ const Navbar = () => {
 
     const adminItems = [
         { to: "/users", text: "Usuarios", icon: <IconUsers /> },
+        { to: '/inventario', text: 'Inventario', icon: <IconPackage /> },
     ];
 
     return (
