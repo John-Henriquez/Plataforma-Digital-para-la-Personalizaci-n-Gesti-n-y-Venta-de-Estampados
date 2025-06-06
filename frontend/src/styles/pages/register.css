@@ -1,0 +1,20 @@
+/* styles/pages/Register.css */
+
+.register-page {
+  height: 100vh;
+  background: linear-gradient(var(--primary-light), var(--primary));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-lg);
+  font-family: var(--font-family);
+}
+
+.register-card {
+  background-color: var(--background, white);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
+  max-width: 500px;
+  width: 100%;
+}

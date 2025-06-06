@@ -50,60 +50,60 @@ export const inventoryService = {
     }
     },
 
-async createItemStock(itemData) {
-  return await AppDataSource.transaction(async transactionalEntityManager => {
-    const { itemTypeId, color, hexColor, size, quantity, price, images, minStock } = itemData;
-    const itemStockRepo = transactionalEntityManager.getRepository(ItemStock);
-    const itemTypeRepo = transactionalEntityManager.getRepository(ItemType);
+  async createItemStock(itemData) {
+    return await AppDataSource.transaction(async transactionalEntityManager => {
+      const { itemTypeId, color, hexColor, size, quantity, price, images, minStock } = itemData;
+      const itemStockRepo = transactionalEntityManager.getRepository(ItemStock);
+      const itemTypeRepo = transactionalEntityManager.getRepository(ItemType);
 
-    if (!itemTypeId || !color || !hexColor || quantity == null || price == null) {
-      return [null, "Faltan campos obligatorios"];
-    }
-    if (quantity < 0 || price < 0) {
-      return [null, "La cantidad y el precio deben ser no negativos"];
-    }
+      if (!itemTypeId || !color || !hexColor || quantity == null || price == null) {
+        return [null, "Faltan campos obligatorios"];
+      }
+      if (quantity < 0 || price < 0) {
+        return [null, "La cantidad y el precio deben ser no negativos"];
+      }
 
-    const itemType = await itemTypeRepo.findOne({ 
-      where: { id: itemTypeId, isActive: true } 
+      const itemType = await itemTypeRepo.findOne({ 
+        where: { id: itemTypeId, isActive: true } 
+      });
+      
+      if (!itemType) {
+        return [null, "Tipo de artículo no encontrado o inactivo"];
+      }
+
+      if (itemType.hasSizes && !size) {
+        return [null, "Este tipo de artículo requiere especificar talla"];
+      }
+
+      const urlRegex = /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif))$/i;
+      const processedImages = Array.isArray(images)
+        ? images.filter(url => url && urlRegex.test(url))
+        : (images && urlRegex.test(images) ? [images] : []);
+
+      const MIN_STOCK_DEFAULTS = {
+        clothing: 10,
+        default: 20
+      };
+      const minStockValue = minStock || MIN_STOCK_DEFAULTS[itemType.category] || MIN_STOCK_DEFAULTS.default;
+
+      const newItem = itemStockRepo.create({
+        color,
+        hexColor,
+        size: itemType.hasSizes ? size : null,
+        quantity,
+        price,
+        images: processedImages,
+        minStock: minStockValue,
+        itemType
+      });
+
+      const savedItem = await itemStockRepo.save(newItem);
+      return [savedItem, null];
+    }).catch(error => {
+      console.error("Error en createItemStock:", error.message, error.stack);
+      return [null, `Error al crear el item en inventario: ${error.message}`];
     });
-    
-    if (!itemType) {
-      return [null, "Tipo de artículo no encontrado o inactivo"];
-    }
-
-    if (itemType.hasSizes && !size) {
-      return [null, "Este tipo de artículo requiere especificar talla"];
-    }
-
-    const urlRegex = /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif))$/i;
-    const processedImages = Array.isArray(images)
-      ? images.filter(url => url && urlRegex.test(url))
-      : (images && urlRegex.test(images) ? [images] : []);
-
-    const MIN_STOCK_DEFAULTS = {
-      clothing: 10,
-      default: 20
-    };
-    const minStockValue = minStock || MIN_STOCK_DEFAULTS[itemType.category] || MIN_STOCK_DEFAULTS.default;
-
-    const newItem = itemStockRepo.create({
-      color,
-      hexColor,
-      size: itemType.hasSizes ? size : null,
-      quantity,
-      price,
-      images: processedImages,
-      minStock: minStockValue,
-      itemType
-    });
-
-    const savedItem = await itemStockRepo.save(newItem);
-    return [savedItem, null];
-  }).catch(error => {
-    console.error("Error en createItemStock:", error.message, error.stack);
-    return [null, `Error al crear el item en inventario: ${error.message}`];
-  });
-},
+  },
 
   async getItemStock(filters = {}) {
     try {
@@ -119,7 +119,7 @@ async createItemStock(itemData) {
       }
 
       const items = await repo.find({
-        where,
+        where: { isActive: true },
         relations: ["itemType"],
         order: { createdAt: "DESC" }
       });
@@ -171,7 +171,7 @@ async createItemStock(itemData) {
     console.error("Error en updateItemStock:", error.message, error.stack);
     return [null, `Error al actualizar el item de inventario: ${error.message}`];
   }
-},
+  },
 
   async deleteItemStock(id) {
     try {
@@ -182,10 +182,7 @@ async createItemStock(itemData) {
         return [null, "Item de inventario no encontrado"];
       }
 
-      // Soft delete
-      item.isActive = false;
-      item.updatedAt = new Date();
-      await repo.save(item);
+      await repo.remove(item);
       
       return [{ id: item.id, message: "Item desactivado correctamente" }, null];
     } catch (error) {

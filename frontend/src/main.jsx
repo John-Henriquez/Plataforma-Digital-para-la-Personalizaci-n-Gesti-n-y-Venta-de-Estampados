@@ -8,7 +8,7 @@ import Register from '@pages/Register';
 import Error404 from '@pages/Error404';
 import Root from '@pages/Root';
 import ProtectedRoute from '@components/ProtectedRoute';
-import '@styles/styles.css';
+import '@styles/index.css';
 
 const router = createBrowserRouter([
   {

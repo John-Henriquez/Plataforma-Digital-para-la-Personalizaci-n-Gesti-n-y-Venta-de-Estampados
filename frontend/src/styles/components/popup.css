@@ -1,0 +1,110 @@
+.popup-bg {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.338);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  animation: fadeIn var(--transition-fast);
+}
+
+.popup {
+  max-height: 80vh;
+  height: 700px;
+  width: 600px;
+  background: white;
+  overflow-y: auto;
+  position: relative;
+  border-radius: var(--border-radius-lg);
+  z-index: 3001;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp var(--transition-normal);
+}
+
+.popup-close {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: var(--spacing-xs);
+  transition: transform var(--transition-fast);
+  z-index: 3002;
+}
+
+.popup-close:hover {
+  transform: rotate(90deg);
+}
+
+.popup-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--gray-300);
+}
+
+.popup .form {
+  padding: var(--spacing-lg);
+}
+
+.popup .form h1 {
+  margin-bottom: var(--spacing-lg);
+}
+
+.popup .form button {
+  margin-top: 0;
+}
+
+.popup .form .container_inputs {
+  margin-bottom: var(--spacing-sm);
+}
+
+.tooltip-icon {
+  position: relative;
+  top: 0.125rem;
+  margin-left: var(--spacing-xs);
+  cursor: pointer;
+  display: inline-block;
+}
+
+.tooltip-icon .tooltip-text {
+  visibility: hidden;
+  width: 150px;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  text-align: center;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-xs);
+  position: absolute;
+  font-size: 0.75rem;
+  z-index: 1;
+  top: -0.125rem;
+  left: 105%;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.tooltip-icon .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -0.3125rem;
+  border-width: 0.3125rem;
+  border-style: solid;
+  border-color: transparent rgba(0, 0, 0, 0.75) transparent transparent;
+}
+
+.tooltip-icon:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.popup .form .toggle-password-icon {
+  top: 50%;
+}

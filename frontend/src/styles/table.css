@@ -1,17 +1,20 @@
 .table-container .tabulator .tabulator-col {
-    background: #6A0DAD;
-    color: #FFFFFF;
+  background: var(--primary);
+  color: white;
+  font-weight: 500;
 }
 
 .tabulator .tabulator-footer .tabulator-page {
-    background-color: #FFF0E6;
-    color: #6A0DAD;
-    border: 1px solid #6A0DAD;
-    padding: 4px 8px;
-    border-radius: 4px;
+  background-color: var(--secondary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  margin: 0 var(--spacing-xs);
 }
 
 .tabulator .tabulator-footer .tabulator-page.active {
-    color: #FF6A00;
-    font-weight: bold;
+  color: var(--secondary);
+  font-weight: bold;
+  background-color: white;
 }

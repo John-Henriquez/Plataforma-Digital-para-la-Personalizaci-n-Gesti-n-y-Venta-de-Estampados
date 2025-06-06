@@ -1,5 +1,5 @@
 import Form from './Form';
-import '@styles/popup.css';
+import './../styles/components/Popup.css';
 import CloseIcon from '@assets/XIcon.svg';
 import QuestionIcon from '@assets/QuestionCircleIcon.svg';
 

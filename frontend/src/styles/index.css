@@ -1,84 +1,102 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  color: #3D004D; /* Morado oscuro para texto principal */
-  background-color: #F4F4F4; /* Fondo gris claro */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap");
+@import './base/variables.css';
+@import './base/animations.css';
+
+html,
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  min-width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: var(--font-family);
+  background-color: var(--background);
+  color: var(--text-primary);
+}
+
+#root {
+  min-width: 100%;
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  overflow-y: auto;
+  padding-top: 150px;
+  box-sizing: border-box;
+  background-color: var(--background);
 }
 
 a {
   font-weight: 500;
-  color: #FF6A00; /* Naranjo vibrante */
+  color: var(--secondary);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: #FF8533; /* Naranjo más claro al hacer hover */
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  overflow-x: hidden;
-  background-color: #F4F4F4; /* Fondo general claro */
-  color: #3D004D;
+  color: var(--secondary-dark);
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
-  color: #6A0DAD;
+  color: var(--primary);
 }
 
 button {
-  border-radius: 8px;
+  border-radius: var(--border-radius-md);
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #6A0DAD; /* Morado */
-  color: #ffffff;
+  background-color: var(--primary);
+  color: white;
   cursor: pointer;
   transition: border-color 0.25s, background-color 0.25s;
 }
 
 button:hover {
-  border-color: #FF6A00;
-  background-color: #FF6A00;
-  color: white;
+  border-color: var(--secondary);
+  background-color: var(--secondary);
 }
 
 button:focus,
 button:focus-visible {
-  outline: 4px auto #FF6A00;
+  outline: 4px auto var(--secondary);
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #3D004D;
-    background-color: #F4F4F4;
+    color: var(--text-primary);
+    background-color: var(--background);
   }
 
   a:hover {
-    color: #FF8533;
+    color: var(--secondary-dark);
   }
 
   button {
-    background-color: #FFD6B0; /* Naranjo pastel */
-    color: #3D004D;
+    background-color: var(--secondary-light);
+    color: var(--text-primary);
   }
 
   button:hover {
-    background-color: #FF6A00;
+    background-color: var(--secondary);
     color: white;
   }
+}
+
+.swal2-popup {
+  z-index: 9999;
 }

@@ -7,7 +7,7 @@ import UpdateIcon from '../assets/updateIcon.svg';
 import UpdateIconDisable from '../assets/updateIconDisabled.svg';
 import DeleteIconDisable from '../assets/deleteIconDisabled.svg';
 import { useCallback, useState } from 'react';
-import '@styles/users.css';
+import './../styles/pages/Users.css';
 import useEditUser from '@hooks/users/useEditUser';
 import useDeleteUser from '@hooks/users/useDeleteUser';
 

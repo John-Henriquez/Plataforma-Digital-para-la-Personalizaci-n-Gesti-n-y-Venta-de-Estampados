@@ -1,0 +1,76 @@
+.inventory-container {
+  padding: var(--spacing-md);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.inventory-paper {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  background-color: var(--gray-100);
+}
+
+.inventory-title {
+  color: var(--primary-dark);
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
+
+.inventory-filter-grid {
+  margin-top: var(--spacing-sm);
+}
+
+.inventory-item-card {
+  background-color: white;
+  border-radius: var(--border-radius-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inventory-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.inventory-item-details {
+  color: var(--gray-700);
+}
+
+.inventory-item-color {
+  vertical-align: middle;
+  margin-left: var(--spacing-xs);
+}
+
+.inventory-action-buttons {
+  gap: var(--spacing-sm);
+}
+
+.inventory-button {
+  border-radius: var(--border-radius-sm);
+  text-transform: none;
+  font-weight: 500;
+}
+
+.inventory-button:hover {
+  opacity: 0.9;
+}
+
+.inventory-list {
+  list-style: none;
+  padding: 0;
+}
+
+.inventory-list li {
+  padding: var(--spacing-sm);
+  background-color: var(--gray-200);
+  margin-bottom: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  color: var(--gray-900);
+}
+
+.inventory-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-lg);
+}
