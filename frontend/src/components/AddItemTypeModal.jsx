@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useCreateItemType } from './../hooks/inventory/useCreateItemType.jsx';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Select, MenuItem, InputLabel, FormControl,
-  Checkbox, FormControlLabel, OutlinedInput, Chip, Box
+  Checkbox, OutlinedInput, Chip, Box
 } from '@mui/material';
 import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
-import { createItemType } from '../services/inventory.service.js';
 
 const PRINTING_OPTIONS = ['sublimación', 'DTF', 'vinilo'];
 const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
@@ -17,10 +17,12 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
     category: '',
     printingMethods: [],
     hasSizes: false,
-    sizesAvailable: []
+    sizesAvailable: [],
+    baseImage: null
   });
 
-  // Actualiza hasSizes según la categoría
+  const { addType, loading } = useCreateItemType();
+
   useEffect(() => {
     if (form.category === 'clothing') {
       setForm(prev => ({ ...prev, hasSizes: true }));
@@ -28,29 +30,66 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
       setForm(prev => ({ ...prev, hasSizes: false, sizesAvailable: [] }));
     }
   }, [form.category]);
+  
+  useEffect(() => {
+  if (open) {
+    setForm({
+      name: '',
+      description: '',
+      category: '',
+      printingMethods: [],
+      hasSizes: false,
+      sizesAvailable: [],
+      baseImage: null
+    });
+  }
+}, [open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleMultiSelectChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: typeof value === 'string' ? value.split(',') : value }));
-  };
+const handleMultiSelectChange = (e) => {
+  const { name, value } = e.target;
+  const flattened = Array.isArray(value) ? value.flat(Infinity) : [value];
+
+  setForm(prev => ({
+    ...prev,
+    [name]: flattened
+  }));
+};
 
   const handleSubmit = async () => {
     try {
-    const payload = {
-      name: form.name,
-      description: form.description,
-      category: form.category,
-      hasSizes: form.hasSizes,
-      printingMethods: form.printingMethods,
-      ...(form.hasSizes && { sizesAvailable: form.sizesAvailable })
-    };
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('description', form.description);
+      formData.append('category', form.category);
+      formData.append('hasSizes', form.hasSizes);
 
-      await createItemType(payload);
+      form.printingMethods.forEach(method => {
+        formData.append('printingMethods', method); 
+      });
+
+      form.sizesAvailable.forEach(size => {
+        formData.append('sizesAvailable', size); 
+      });
+      
+      if (form.baseImage instanceof File) {
+        formData.append('baseImage', form.baseImage); 
+      } else {
+        console.warn("baseImage no es un File válido:", form.baseImage);
+      }
+
+      console.log('=== Contenido de formData antes de enviar ===');
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
+      console.log('==============================================');
+
+      await addType(formData);
+      
       showSuccessAlert('¡Tipo creado!', 'El tipo de ítem se agregó correctamente.');
       onCreated();
       onClose();
@@ -120,6 +159,17 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
           </Select>
         </FormControl>
 
+        <input
+          type="file"
+          name="baseImage"
+          accept="image/*"
+          onChange={(e) => {
+            if (e.target.files && e.target.files.length > 0) {
+              setForm(prev => ({ ...prev, baseImage: e.target.files[0] }));
+            }
+          }}
+          className="inventory-image-upload"
+        />
         {form.category === 'clothing' && (
           <FormControl fullWidth>
             <InputLabel>Tallas disponibles</InputLabel>
@@ -150,8 +200,12 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
 
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={!form.name || !form.category}>
-          Crear
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          disabled={loading || !form.name || !form.category}
+        >
+          {loading ? 'Creando...' : 'Crear'}
         </Button>
       </DialogActions>
     </Dialog>

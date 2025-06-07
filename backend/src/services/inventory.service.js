@@ -22,7 +22,8 @@ export const inventoryService = {
         category: itemTypeData.category,
         hasSizes: itemTypeData.hasSizes,
         printingMethods: itemTypeData.printingMethods || [],
-        sizesAvailable: itemTypeData.hasSizes ? itemTypeData.sizesAvailable : []
+        sizesAvailable: itemTypeData.hasSizes ? itemTypeData.sizesAvailable : [],
+        baseImageUrl: itemTypeData.baseImageUrl || null
       });
 
       const savedItemType = await repo.save(newItemType);

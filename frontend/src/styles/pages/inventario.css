@@ -74,3 +74,16 @@
   justify-content: center;
   padding: var(--spacing-lg);
 }
+
+.inventory-image-upload {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--gray-100);
+  cursor: pointer;
+}
+
+.inventory-image-upload:hover {
+  background-color: var(--gray-200);
+}

@@ -50,6 +50,12 @@ const ItemTypeSchema = new EntitySchema({
       default: false,
       nullable: false
     },
+    baseImageUrl: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    },
+
   },
   relations: {
     stocks: {

@@ -1,58 +1,71 @@
 import { inventoryService } from "../services/inventory.service.js";
 import { handleErrorClient, handleErrorServer, handleSuccess } from "../handlers/responseHandlers.js";
-import Joi from "joi";
-
-// Esquemas de validación
-const itemStockSchema = Joi.object({
-  itemTypeId: Joi.number().integer().required(),
-  color: Joi.string().required(),
-  hexColor: Joi.string().pattern(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
-  size: Joi.string().optional(),
-  quantity: Joi.number().integer().min(0).required(),
-  price: Joi.number().positive().required(),
-  images: Joi.array().items(Joi.string().uri()).min(1).optional(),
-  minStock: Joi.number().integer().min(0).optional()
-});
-
-const itemStockUpdateSchema = Joi.object({
-  color: Joi.string().optional(),
-  hexColor: Joi.string().pattern(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
-  size: Joi.string().optional(),
-  quantity: Joi.number().integer().min(0).optional(),
-  price: Joi.number().positive().optional(),
-  images: Joi.array().items(Joi.string().uri()).optional(),
-  minStock: Joi.number().integer().min(0).optional(),
-  isActive: Joi.boolean().optional()
-});
-const itemTypeSchema = Joi.object({
-  name: Joi.string().required().min(3).max(100),
-  description: Joi.string().allow(" ").optional(),
-  category: Joi.string().valid("clothing", "object").required(),
-  hasSizes: Joi.boolean().default(false),
-  printingMethods: Joi.array().items(Joi.string().min(1)).optional(),
-  sizesAvailable: Joi.array().items(Joi.string().min(1)).min(1).when("hasSizes", {
-    is: true,
-    then: Joi.required(),
-    otherwise: Joi.optional().empty(Joi.array().length(0))
-  })
-});
+import { itemStockSchema, itemStockUpdateSchema } from "../validations/itemStock.validation.js";
+import { itemTypeSchema } from "../validations/itemType.validation.js";
 
 export const inventoryController = {
-  async createItemType(req, res) {
-    try {
-      const { error } = itemTypeSchema.validate(req.body);
-      if (error) {
-        return handleErrorClient(res, 400, "Error de validación", error.details);
-      }
+async createItemType(req, res) {
+  console.log("=== createItemType ===");
 
-      const [newItemType, serviceError] = await inventoryService.createItemType(req.body);
-      if (serviceError) return handleErrorClient(res, 400, serviceError);
-      
-      handleSuccess(res, 201, "Tipo de ítem creado", newItemType);
-    } catch (error) {
-      handleErrorServer(res, 500, error.message);
+  console.log("req.body antes de parsear:", req.body);
+  console.log("req.file:", req.file);
+
+  try {
+    if (req.body.baseImage) delete req.body.baseImage;
+    if (typeof req.body.hasSizes === "string") {
+      req.body.hasSizes = JSON.parse(req.body.hasSizes); 
+      console.log("hasSizes parseado:", req.body.hasSizes);
     }
-  },
+
+    if (req.file) {
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      req.body.baseImageUrl = `/uploads/${req.file.filename}`;
+
+      console.log("Imagen subida, baseImageUrl seteado:", req.body.baseImageUrl);
+    } else {
+      console.log("No se recibió archivo baseImage");
+    }
+
+    if (typeof req.body.printingMethods === "string") {
+      req.body.printingMethods = JSON.parse(req.body.printingMethods);
+      console.log("printingMethods parseado:", req.body.printingMethods);
+    }
+    if (typeof req.body.sizesAvailable === "string") {
+      req.body.sizesAvailable = JSON.parse(req.body.sizesAvailable);
+      console.log("sizesAvailable parseado:", req.body.sizesAvailable);
+    }
+
+    if (Array.isArray(req.body.printingMethods)) {
+      req.body.printingMethods = req.body.printingMethods.flat(Infinity);
+      console.log("printingMethods flatten:", req.body.printingMethods);
+    }
+
+    if (Array.isArray(req.body.sizesAvailable)) {
+      req.body.sizesAvailable = req.body.sizesAvailable.flat(Infinity);
+      console.log("sizesAvailable flatten:", req.body.sizesAvailable);
+    }
+
+    const { error } = itemTypeSchema.validate(req.body);
+    if (error) {
+      console.error("Error de validación Joi:", error.details);
+      return handleErrorClient(res, 400, "Error de validación", error.details);
+    }
+    console.log("Validación Joi OK");
+
+    const [newItemType, serviceError] = await inventoryService.createItemType(req.body);
+    if (serviceError) {
+      console.error("Error en inventoryService.createItemType:", serviceError);
+      return handleErrorClient(res, 400, serviceError);
+    }
+
+    console.log("Tipo de ítem creado exitosamente:", newItemType);
+    handleSuccess(res, 201, "Tipo de ítem creado", newItemType);
+
+  } catch (error) {
+    console.error("Error en createItemType catch:", error);
+    handleErrorServer(res, 500, error.message);
+  }
+},
 
   async getItemTypes(req, res) {
     try {

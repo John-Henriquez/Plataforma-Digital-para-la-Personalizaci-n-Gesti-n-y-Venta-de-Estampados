@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import AddItemTypeModal from './AddItemTypeModal.jsx';
+import AddItemTypeModal from './../components/AddItemTypeModal.jsx';
 import useInventory from '../hooks/inventory/useInventory';
 import useDeleteItemStock from '../hooks/inventory/useDeleteItemStock';
 import useEditItemStock from '../hooks/inventory/useEditItemStock';
