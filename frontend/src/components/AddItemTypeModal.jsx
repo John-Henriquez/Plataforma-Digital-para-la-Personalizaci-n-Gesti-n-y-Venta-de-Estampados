@@ -1,22 +1,53 @@
 import { useState, useEffect } from 'react';
 import { useCreateItemType } from '../hooks/itemType/useCreateItemType.jsx';
-import { Shirt, Coffee } from 'lucide-react';
+import { 
+  Shirt, Coffee, GlassWater, Key, Table, Notebook, Gift, 
+  GraduationCap, Baby, Backpack, Smartphone, FlaskConical 
+} from 'lucide-react';
 
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Select, MenuItem, InputLabel, FormControl,
-  Checkbox, OutlinedInput, Chip, Box
+  Checkbox, OutlinedInput, Chip, Box, ListSubheader
 } from '@mui/material';
 import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
 
 const PRINTING_OPTIONS = ['sublimación', 'DTF', 'vinilo'];
 const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
-const ICON_OPTIONS = [
-  { label: 'Polera', value: 'tshirt', Icon: Shirt },
-  { label: 'Tazón', value: 'mug', Icon: Coffee },
-  { label: 'Polerón', value: 'hoodie', Icon: Shirt },
+const ICON_CATEGORIES = [
+  {
+    name: 'Ropa y Textiles',
+    icons: [
+      { label: 'Camiseta', value: 'shirt', Icon: Shirt },
+      { label: 'Gorra', value: 'cap', Icon: GraduationCap },
+      { label: 'Pijama', value: 'pijama', Icon: Baby },
+      { label: 'Bolso/Mochila', value: 'bag', Icon: Backpack },
+    ],
+  },
+  {
+    name: 'Accesorios',
+    icons: [
+      { label: 'Taza', value: 'mug', Icon: Coffee },
+      { label: 'Vaso', value: 'glass', Icon: GlassWater },
+      { label: 'Llave', value: 'key', Icon: Key } 
+    ],
+  },
+  {
+    name: 'Hogar',
+    icons: [
+      { label: 'Mesa', value: 'table', Icon: Table },
+      { label: 'Smartphone', value: 'phone', Icon: Smartphone },
+    ],
+  },
+  {
+    name: 'Promocionales/Regalos',
+    icons: [
+      { label: 'Libreta', value: 'notebook', Icon: Notebook },
+      { label: 'Botella', value: 'bottle', Icon: FlaskConical },
+      { label: 'Regalo', value: 'gift', Icon: Gift },
+    ],
+  },
 ];
-
 
 const AddItemTypeModal = ({ open, onClose, onCreated }) => {
   const [form, setForm] = useState({
@@ -147,20 +178,28 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
             value={form.icon}
             onChange={handleChange}
             renderValue={(value) => {
-              const icon = ICON_OPTIONS.find((i) => i.value === value);
-              return icon ? (
+              let selectedIcon;
+              for (const category of ICON_CATEGORIES) {
+                selectedIcon = category.icons.find((i) => i.value === value);
+                if (selectedIcon) break;
+              }
+              return selectedIcon ? (
                 <Box display="flex" alignItems="center" gap={1}>
-                  {icon.label}
+                  <selectedIcon.Icon size={20} />
+                  {selectedIcon.label}
                 </Box>
               ) : null;
             }}
           >
-            {ICON_OPTIONS.map((icon) => (
-              <MenuItem key={icon.value} value={icon.value}>
-                <icon.Icon size={24} style={{ marginRight: 8 }} />
-                {icon.label}
-              </MenuItem>
-            ))}
+            {ICON_CATEGORIES.map((category) => [
+              <ListSubheader key={category.name}>{category.name}</ListSubheader>,
+              ...category.icons.map((icon) => (
+                <MenuItem key={icon.value} value={icon.value}>
+                  <icon.Icon size={24} style={{ marginRight: 8 }} />
+                  {icon.label}
+                </MenuItem>
+              ))
+            ])}
           </Select>
         </FormControl>
         <FormControl fullWidth required margin="normal" className="add-item-modal-field">

@@ -33,9 +33,7 @@ const Login = () => {
 <main className="login-page">
     <div className="login-card">
         <Form
-            title={
-                <h1>Iniciar sesión</h1>
-            }
+            title="Iniciar sesión"
             fields={[
                 {
                     label: "Correo electrónico",
