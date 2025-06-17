@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getItemTypes, getItemStock } from '@services/inventory.service';
+import { getItemStock } from '../../services/itemStock.service.js';
+import { getItemTypes } from '../../services/itemType.service.js';
 
 const initialFilters = {
   color: '',
   size: ''
 };
 
-const useInventory = () => {
+const useItemStock = () => {
     const [itemTypes, setItemTypes] = useState([]);
     const [itemStock, setItemStock] = useState([]);
     const [filters, setFilters] = useState(initialFilters);
@@ -44,4 +45,4 @@ const useInventory = () => {
     };
 };
 
-export default useInventory;
+export default useItemStock;

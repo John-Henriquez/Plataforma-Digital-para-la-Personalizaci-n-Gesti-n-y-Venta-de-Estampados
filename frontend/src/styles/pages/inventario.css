@@ -55,7 +55,14 @@
 .inventory-button:hover {
   opacity: 0.9;
 }
-
+.inventory-button--primary {
+  background-color: var(--primary);
+  color: white;
+}
+.inventory-button--secondary {
+  background-color: var(--secondary);
+  color: white;
+}
 .inventory-list {
   list-style: none;
   padding: 0;
@@ -67,6 +74,7 @@
   margin-bottom: var(--spacing-xs);
   border-radius: var(--border-radius-sm);
   color: var(--gray-900);
+  border-left: 4px solid var(--primary-light);
 }
 
 .inventory-loading {
@@ -86,4 +94,32 @@
 
 .inventory-image-upload:hover {
   background-color: var(--gray-200);
+}
+
+.inventory-item-details--low-stock {
+  color: var(--error);
+  font-weight: 600;
+}
+.inventory-item-details--warning-stock {
+  color: var(--warning);
+  font-weight: 500;
+}
+.add-item-modal-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--spacing-sm);
+  max-height: 150px; 
+  overflow: hidden; 
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--gray-100);
+  padding: var(--spacing-sm);
+}
+
+.add-item-modal-image-preview {
+  max-width: 100%;
+  max-height: 100%; 
+  object-fit: contain; 
+  border-radius: var(--border-radius-sm);
 }

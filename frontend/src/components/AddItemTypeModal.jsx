@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useCreateItemType } from './../hooks/inventory/useCreateItemType.jsx';
+import { useCreateItemType } from '../hooks/itemType/useCreateItemType.jsx';
+import { Shirt, Coffee } from 'lucide-react';
+
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Select, MenuItem, InputLabel, FormControl,
@@ -9,6 +11,12 @@ import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
 
 const PRINTING_OPTIONS = ['sublimación', 'DTF', 'vinilo'];
 const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
+const ICON_OPTIONS = [
+  { label: 'Polera', value: 'tshirt', Icon: Shirt },
+  { label: 'Tazón', value: 'mug', Icon: Coffee },
+  { label: 'Polerón', value: 'hoodie', Icon: Shirt },
+];
+
 
 const AddItemTypeModal = ({ open, onClose, onCreated }) => {
   const [form, setForm] = useState({
@@ -18,10 +26,25 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
     printingMethods: [],
     hasSizes: false,
     sizesAvailable: [],
-    baseImage: null
+    icon: '' 
   });
 
-  const { addType, loading } = useCreateItemType();
+  const { addType, loading, error, clearError } = useCreateItemType();
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        name: '',
+        description: '',
+        category: '',
+        printingMethods: [],
+        hasSizes: false,
+        sizesAvailable: [],
+        icon: ''
+      });
+      clearError();
+    }
+  }, [open, clearError]);
 
   useEffect(() => {
     if (form.category === 'clothing') {
@@ -30,35 +53,16 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
       setForm(prev => ({ ...prev, hasSizes: false, sizesAvailable: [] }));
     }
   }, [form.category]);
-  
-  useEffect(() => {
-  if (open) {
-    setForm({
-      name: '',
-      description: '',
-      category: '',
-      printingMethods: [],
-      hasSizes: false,
-      sizesAvailable: [],
-      baseImage: null
-    });
-  }
-}, [open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
-const handleMultiSelectChange = (e) => {
-  const { name, value } = e.target;
-  const flattened = Array.isArray(value) ? value.flat(Infinity) : [value];
-
-  setForm(prev => ({
-    ...prev,
-    [name]: flattened
-  }));
-};
+  const handleMultiSelectChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async () => {
     try {
@@ -66,20 +70,14 @@ const handleMultiSelectChange = (e) => {
       formData.append('name', form.name);
       formData.append('description', form.description);
       formData.append('category', form.category);
-      formData.append('hasSizes', form.hasSizes);
+      formData.append('hasSizes', form.hasSizes.toString());
+      formData.append('printingMethods', JSON.stringify(form.printingMethods));
+      if (form.hasSizes) {
+        formData.append('sizesAvailable', JSON.stringify(form.sizesAvailable));
+      }
 
-      form.printingMethods.forEach(method => {
-        formData.append('printingMethods', method); 
-      });
-
-      form.sizesAvailable.forEach(size => {
-        formData.append('sizesAvailable', size); 
-      });
-      
-      if (form.baseImage instanceof File) {
-        formData.append('baseImage', form.baseImage); 
-      } else {
-        console.warn("baseImage no es un File válido:", form.baseImage);
+      if (form.icon) {
+        formData.append('iconKey', form.icon);
       }
 
       console.log('=== Contenido de formData antes de enviar ===');
@@ -89,20 +87,27 @@ const handleMultiSelectChange = (e) => {
       console.log('==============================================');
 
       await addType(formData);
-      
       showSuccessAlert('¡Tipo creado!', 'El tipo de ítem se agregó correctamente.');
       onCreated();
       onClose();
     } catch (error) {
       console.error(error);
-      showErrorAlert('Error', error.message || 'No se pudo crear el tipo.');
+      showErrorAlert('Error', error || 'No se pudo crear el tipo.');
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Nuevo Tipo de Ítem</DialogTitle>
-      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      className="add-item-modal"
+    >
+      <DialogTitle className="add-item-modal-title">
+        Nuevo Tipo de Ítem
+      </DialogTitle>
+      <DialogContent dividers className="add-item-modal-content">
         <TextField
           label="Nombre"
           name="name"
@@ -110,8 +115,9 @@ const handleMultiSelectChange = (e) => {
           onChange={handleChange}
           required
           fullWidth
+          margin="normal"
+          className="add-item-modal-field"
         />
-
         <TextField
           label="Descripción"
           name="description"
@@ -120,9 +126,10 @@ const handleMultiSelectChange = (e) => {
           multiline
           rows={3}
           fullWidth
+          margin="normal"
+          className="add-item-modal-field"
         />
-
-        <FormControl fullWidth required>
+        <FormControl fullWidth required margin="normal" className="add-item-modal-field">
           <InputLabel>Categoría</InputLabel>
           <Select
             name="category"
@@ -133,8 +140,30 @@ const handleMultiSelectChange = (e) => {
             <MenuItem value="object">Objeto</MenuItem>
           </Select>
         </FormControl>
-
-        <FormControl fullWidth>
+        <FormControl fullWidth margin="normal" className="add-item-modal-field">
+          <InputLabel>Ícono</InputLabel>
+          <Select
+            name="icon"
+            value={form.icon}
+            onChange={handleChange}
+            renderValue={(value) => {
+              const icon = ICON_OPTIONS.find((i) => i.value === value);
+              return icon ? (
+                <Box display="flex" alignItems="center" gap={1}>
+                  {icon.label}
+                </Box>
+              ) : null;
+            }}
+          >
+            {ICON_OPTIONS.map((icon) => (
+              <MenuItem key={icon.value} value={icon.value}>
+                <icon.Icon size={24} style={{ marginRight: 8 }} />
+                {icon.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth required margin="normal" className="add-item-modal-field">
           <InputLabel>Métodos de Impresión</InputLabel>
           <Select
             multiple
@@ -158,20 +187,8 @@ const handleMultiSelectChange = (e) => {
             ))}
           </Select>
         </FormControl>
-
-        <input
-          type="file"
-          name="baseImage"
-          accept="image/*"
-          onChange={(e) => {
-            if (e.target.files && e.target.files.length > 0) {
-              setForm(prev => ({ ...prev, baseImage: e.target.files[0] }));
-            }
-          }}
-          className="inventory-image-upload"
-        />
-        {form.category === 'clothing' && (
-          <FormControl fullWidth>
+        {form.hasSizes && (
+          <FormControl fullWidth required margin="normal" className="add-item-modal-field">
             <InputLabel>Tallas disponibles</InputLabel>
             <Select
               multiple
@@ -197,13 +214,18 @@ const handleMultiSelectChange = (e) => {
           </FormControl>
         )}
       </DialogContent>
-
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+      <DialogActions className="add-item-modal-actions">
+        <Button
+          onClick={onClose}
+          className="add-item-modal-button add-item-modal-button--cancel"
+        >
+          Cancelar
+        </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={loading || !form.name || !form.category}
+          disabled={loading || !form.name || !form.category || !form.printingMethods.length}
+          className="add-item-modal-button add-item-modal-button--primary"
         >
           {loading ? 'Creando...' : 'Crear'}
         </Button>

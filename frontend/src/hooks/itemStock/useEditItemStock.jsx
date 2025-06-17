@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { updateItemStock } from '../../services/inventory.service';
+import { updateItemStock } from '../../services/itemStock.service.js';
 
 const useEditItemStock = () => {
   const [loading, setLoading] = useState(false);

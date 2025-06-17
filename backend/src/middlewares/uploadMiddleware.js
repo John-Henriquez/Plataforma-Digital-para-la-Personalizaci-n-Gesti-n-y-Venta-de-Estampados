@@ -15,7 +15,11 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext);
+    const name = path
+      .basename(file.originalname, ext)
+      .toLowerCase()
+      .replace(/\s+/g, "_")
+      .replace(/[^\w\-]+/g, "");
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, `${name}-${uniqueSuffix}${ext}`);
   },
@@ -23,10 +27,10 @@ const storage = multer.diskStorage({
 
 // Filtro para permitir solo imágenes .png o .jpg
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
+  if (file.mimetype === "image/svg+xml") {
     cb(null, true);
   } else {
-    cb(new Error("Solo se permiten imágenes PNG o JPEG"), false);
+    cb(new Error("Solo se permiten archivos SVG"), false);
   }
 };
 

@@ -2,56 +2,8 @@ import { AppDataSource } from "../config/configDb.js";
 import ItemType from "../entity/itemType.entity.js";
 import ItemStock from "../entity/itemStock.entity.js";
 
-export const inventoryService = {
-
-  async createItemType(itemTypeData) {
-    try {
-      const repo = AppDataSource.getRepository(ItemType);
-
-      const existingType = await repo.findOne({ 
-        where: { name: itemTypeData.name } 
-      });
-      
-      if (existingType) {
-        return [null, "Ya existe un tipo de ítem con este nombre"];
-      }
-
-      const newItemType = repo.create({
-        name: itemTypeData.name,
-        description: itemTypeData.description,
-        category: itemTypeData.category,
-        hasSizes: itemTypeData.hasSizes,
-        printingMethods: itemTypeData.printingMethods || [],
-        sizesAvailable: itemTypeData.hasSizes ? itemTypeData.sizesAvailable : [],
-        baseImageUrl: itemTypeData.baseImageUrl || null
-      });
-
-      const savedItemType = await repo.save(newItemType);
-      return [savedItemType, null];
-    } catch (error) {
-      console.error("Error en createItemType:", error);
-      return [null, "Error al crear el tipo de ítem"];
-    }
-  },
-
-  async getItemTypes() {
-    try {
-      const repo = AppDataSource.getRepository(ItemType);
-      const itemTypes = await repo.find({
-        where: { isActive: true },
-        order: { name: "ASC" }
-      });
-      if (!itemTypes || itemTypes.length === 0) {
-        return [[], null];
-      }
-      return [itemTypes, null];
-    } catch (error) {
-      console.error("Error en getItemTypes:", error);
-      return [null, "Error al obtener los tipos de ítem"];
-    }
-    },
-
-  async createItemStock(itemData) {
+export const itemStockService = {
+    async createItemStock(itemData) {
     return await AppDataSource.transaction(async transactionalEntityManager => {
       const { itemTypeId, color, hexColor, size, quantity, price, images, minStock } = itemData;
       const itemStockRepo = transactionalEntityManager.getRepository(ItemStock);
@@ -104,9 +56,9 @@ export const inventoryService = {
       console.error("Error en createItemStock:", error.message, error.stack);
       return [null, `Error al crear el item en inventario: ${error.message}`];
     });
-  },
+    },
 
-  async getItemStock(filters = {}) {
+    async getItemStock(filters = {}) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       
@@ -134,9 +86,9 @@ export const inventoryService = {
       console.error("Error detallado en getItemStock:", error);
       return [null, "Error al obtener el inventario"];
     }
-  },
+    },
 
-  async updateItemStock(id, updateData) {
+    async updateItemStock(id, updateData) {
   try {
     const repo = AppDataSource.getRepository(ItemStock);
     const item = await repo.findOne({ 
@@ -172,9 +124,9 @@ export const inventoryService = {
     console.error("Error en updateItemStock:", error.message, error.stack);
     return [null, `Error al actualizar el item de inventario: ${error.message}`];
   }
-  },
+    },
 
-  async deleteItemStock(id) {
+    async deleteItemStock(id) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const item = await repo.findOne({ where: { id } });
@@ -190,5 +142,5 @@ export const inventoryService = {
       console.error("Error en deleteItemStock:", error);
       return [null, "Error al eliminar el item de inventario"];
     }
-  }
-};
+    }
+}

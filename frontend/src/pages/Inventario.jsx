@@ -1,8 +1,11 @@
-import { useState, useContext } from 'react';
-import AddItemTypeModal from './../components/AddItemTypeModal.jsx';
-import useInventory from '../hooks/inventory/useInventory';
-import useDeleteItemStock from '../hooks/inventory/useDeleteItemStock';
-import useEditItemStock from '../hooks/inventory/useEditItemStock';
+import { useEffect, useState, useContext } from 'react';
+import AddItemTypeModal from '../components/AddItemTypeModal.jsx';
+import useItemStock from '../hooks/itemStock/useItemStock.jsx';
+import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock';
+import useEditItemStock from '../hooks/itemStock/useEditItemStock';
+import { useItemTypes } from '../hooks/itemType/useItemType.jsx';
+import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType';
+import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType';
 import { AuthContext } from '../context/AuthContext';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
 import {
@@ -16,40 +19,24 @@ import {
   Box,
 } from '@mui/material';
 import { Navigate } from 'react-router-dom';
-import './../styles/pages/inventario.css'; 
+import '../styles/pages/inventario.css';
 
 const Inventario = () => {
   const [openAddType, setOpenAddType] = useState(false);
-  const [openAddStock, setOpenAddStock] = useState(false);
-
-  const { deleteItemStock } = useDeleteItemStock();
-
-  const handleDelete = async (id) => {
-    const result = await deleteDataAlert();
-
-    if (result.isConfirmed) {
-      try {
-        await deleteItemStock(id);
-        showSuccessAlert('Eliminado', 'El item fue eliminado correctamente');
-        refetch();
-      } catch (error) {
-        showErrorAlert('Error al eliminar', error.message || 'Ocurrió un error inesperado');
-      }
-    }
-  };
-
-  const { handleEdit } = useEditItemStock();
+  const [openAddStock, setOpenAddStock] = useState(false); // Corregido
 
   const { isAuthenticated, user } = useContext(AuthContext);
-  const {
-    itemTypes,
-    itemStock,
-    loading,
-    error,
-    filters,
-    setFilters,
-    refetch,
-  } = useInventory();
+  const { itemStock, loading: stockLoading, error: stockError, filters, setFilters, refetch: refetchStock } = useItemStock();
+  const { types: itemTypes, fetchTypes, loading: typesLoading, error: typesError } = useItemTypes();
+  const { deleteItemStock } = useDeleteItemStock();
+  const { deleteItemType } = useDeleteItemType();
+  const { restoreType } = useRestoreItemType();
+  const { handleEdit } = useEditItemStock();
+
+  // Cargar tipos de ítems al montar el componente
+  useEffect(() => {
+    fetchTypes();
+  }, [fetchTypes]);
 
   if (!isAuthenticated || user?.rol !== 'administrador') {
     return <Navigate to="/auth" />;
@@ -60,7 +47,43 @@ const Inventario = () => {
   };
 
   const applyFilters = () => {
-    refetch();
+    refetchStock();
+  };
+
+  const handleDeleteStock = async (id) => {
+    const result = await deleteDataAlert();
+    if (result.isConfirmed) {
+      try {
+        await deleteItemStock(id);
+        showSuccessAlert('Eliminado', 'El item fue eliminado correctamente');
+        refetchStock();
+      } catch (error) {
+        showErrorAlert('Error al eliminar', error || 'Ocurrió un error inesperado');
+      }
+    }
+  };
+
+  const handleDeleteType = async (id) => {
+    const result = await deleteDataAlert();
+    if (result.isConfirmed) {
+      try {
+        await deleteItemType(id);
+        showSuccessAlert('Eliminado', 'El tipo de ítem fue eliminado correctamente');
+        fetchTypes();
+      } catch (error) {
+        showErrorAlert('Error al eliminar', error || 'Ocurrió un error inesperado');
+      }
+    }
+  };
+
+  const handleRestoreType = async (id) => {
+    try {
+      await restoreType(id);
+      showSuccessAlert('Restaurado', 'El tipo de ítem fue restaurado correctamente');
+      fetchTypes();
+    } catch (error) {
+      showErrorAlert('Error al restaurar', error || 'Ocurrió un error inesperado');
+    }
   };
 
   return (
@@ -69,7 +92,11 @@ const Inventario = () => {
         Gestión de Inventario
       </Typography>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {(stockError || typesError) && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {stockError || typesError}
+        </Alert>
+      )}
 
       <Paper className="inventory-paper">
         <Typography variant="h6">Filtros</Typography>
@@ -105,7 +132,7 @@ const Inventario = () => {
         </Grid>
       </Paper>
 
-      {loading ? (
+      {(stockLoading || typesLoading) ? (
         <div className="inventory-loading">
           <CircularProgress />
         </div>
@@ -115,13 +142,51 @@ const Inventario = () => {
             <Typography variant="h5">
               Tipos de Productos ({itemTypes.length})
             </Typography>
+            <Box sx={{ mb: 2 }}>
+              <Button
+                variant="contained"
+                className="inventory-button inventory-button--primary"
+                onClick={() => setOpenAddType(true)}
+              >
+                Nuevo Tipo
+              </Button>
+            </Box>
             <ul className="inventory-list">
               {itemTypes.map((type) => (
-                <li key={type.id}>
-                  {type.name} - {type.category}
-                  {type.sizesAvailable?.length > 0 && (
-                    <span> (Tallas: {type.sizesAvailable.join(', ')})</span>
-                  )}
+                <li key={type.id} className="inventory-list-item">
+                  <Box display="flex" alignItems="center" gap={2}>
+                    {type.baseImageUrl && (
+                      <img src={type.baseImageUrl} alt={type.name} width={24} />
+                    )}
+                    <span>
+                      {type.name} - {type.category}
+                      {type.sizesAvailable?.length > 0 && (
+                        <span> (Tallas: {type.sizesAvailable.join(', ')})</span>
+                      )}
+                      {!type.isActive && <span> (Inactivo)</span>}
+                    </span>
+                  </Box>
+                  <Box>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleDeleteType(type.id)}
+                      color="error"
+                      className="inventory-button"
+                    >
+                      Eliminar
+                    </Button>
+                    {!type.isActive && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleRestoreType(type.id)}
+                        className="inventory-button"
+                      >
+                        Restaurar
+                      </Button>
+                    )}
+                  </Box>
                 </li>
               ))}
             </ul>
@@ -131,17 +196,8 @@ const Inventario = () => {
             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
               <Button
                 variant="contained"
-                color="primary"
-                onClick={() => setOpenAddType(true)}
-                className="inventory-button"
-              >
-                Nuevo Tipo
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
+                className="inventory-button inventory-button--secondary"
                 onClick={() => setOpenAddStock(true)}
-                className="inventory-button"
               >
                 Nuevo Stock
               </Button>
@@ -177,7 +233,7 @@ const Inventario = () => {
                         Talla: {item.size}
                       </Typography>
                     )}
-                    <Typography className="inventory-item-details">
+                    <Typography className={`inventory-item-details ${item.quantity <= item.minStock ? 'inventory-item-details--low-stock' : item.quantity <= item.minStock * 1.2 ? 'inventory-item-details--warning-stock' : ''}`}>
                       Stock: {item.quantity} (Mín: {item.minStock})
                     </Typography>
                     <Typography className="inventory-item-details">
@@ -196,7 +252,7 @@ const Inventario = () => {
                         variant="outlined"
                         size="small"
                         color="error"
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDeleteStock(item.id)}
                         className="inventory-button"
                       >
                         Eliminar
@@ -212,8 +268,9 @@ const Inventario = () => {
       <AddItemTypeModal
         open={openAddType}
         onClose={() => setOpenAddType(false)}
-        onCreated={refetch}
+        onCreated={() => fetchTypes()}
       />
+      {/* Agregar modal para añadir stock si es necesario */}
     </Box>
   );
 };

@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { createItemType } from '../../services/inventory.service';
+import { useState, useCallback } from 'react';
+import { createItemType } from '../../services/itemType.service.js';
 
 export const useCreateItemType = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const addType = async (formData) => {
+  const addType = useCallback(async (formData) => {
     setLoading(true);
     setError(null);
     try {
@@ -17,7 +17,9 @@ export const useCreateItemType = () => {
       setLoading(false);
       throw err; 
     }
-  };
+  }, []);
 
-  return { addType, loading, error };
+  const clearError = useCallback(() => setError(null), []);
+
+  return { addType, loading, error, clearError};
 };

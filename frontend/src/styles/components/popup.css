@@ -1,3 +1,4 @@
+/* Fondo oscuro del popup */
 .popup-bg {
   position: fixed;
   top: 0;
@@ -12,58 +13,68 @@
   animation: fadeIn var(--transition-fast);
 }
 
+/* Contenedor del popup */
 .popup {
-  max-height: 80vh;
-  height: 700px;
-  width: 600px;
-  background: white;
-  overflow-y: auto;
   position: relative;
+  background: white;
+  width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
   border-radius: var(--border-radius-lg);
-  z-index: 3001;
   box-shadow: var(--shadow-lg);
   animation: slideUp var(--transition-normal);
+  padding: var(--spacing-lg);
+  padding-top: 3rem; /* deja espacio para el botón de cerrar */
+  z-index: 3001;
 }
 
+/* Botón de cerrar */
 .popup-close {
   position: absolute;
   top: var(--spacing-sm);
   right: var(--spacing-sm);
-  cursor: pointer;
   background: none;
   border: none;
   padding: var(--spacing-xs);
+  cursor: pointer;
+  z-index: 10;
   transition: transform var(--transition-fast);
-  z-index: 3002;
 }
 
-.popup-close:hover {
+/* Ícono "X" visible */
+.close-icon {
+  color: var(--gray-700);
+}
+
+/* Rotación al pasar el mouse */
+.popup-close:hover .close-icon {
   transform: rotate(90deg);
 }
 
-.popup-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--gray-300);
-}
-
+/* Estilo base del formulario dentro del popup */
 .popup .form {
-  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
 .popup .form h1 {
   margin-bottom: var(--spacing-lg);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-900);
 }
 
 .popup .form button {
-  margin-top: 0;
+  margin-top: var(--spacing-md);
 }
 
+/* Contenedor de cada input (espaciado inferior) */
 .popup .form .container_inputs {
   margin-bottom: var(--spacing-sm);
 }
 
+/* TOOLTIP (ícono de ayuda junto a "nueva contraseña") */
 .tooltip-icon {
   position: relative;
   top: 0.125rem;
@@ -105,6 +116,33 @@
   opacity: 1;
 }
 
-.popup .form .toggle-password-icon {
+/* CONTENEDOR DEL INPUT DE CONTRASEÑA Y EL OJO */
+.input-password-wrapper {
+  position: relative;
+}
+
+/* Ícono de visibilidad de contraseña */
+.toggle-password-icon {
+  position: absolute;
   top: 50%;
+  right: var(--spacing-sm);
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: var(--gray-700);
+  z-index: 5;
+}
+
+/* RESPONSIVE */
+@media (max-width: 767px) {
+  .popup {
+    width: 90%;
+    height: auto;
+    max-height: 90vh;
+    padding: var(--spacing-md);
+    padding-top: 3rem;
+  }
+
+  .popup .form h1 {
+    font-size: 1.25rem;
+  }
 }

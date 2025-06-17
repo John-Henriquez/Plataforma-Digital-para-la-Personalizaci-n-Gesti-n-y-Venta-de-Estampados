@@ -1,8 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import './../styles/components/Form.css';
-import HideIcon from '../assets/HideIcon.svg';
-import ViewIcon from '../assets/ViewIcon.svg';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundColor }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -98,12 +97,12 @@ const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundCo
                     {/* Íconos para password */}
                     {field.type === 'password' && field.name === 'password' && (
                         <span className="toggle-password-icon" onClick={togglePasswordVisibility}>
-                            <img src={showPassword ? ViewIcon : HideIcon} alt="toggle" />
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </span>
                     )}
                     {field.type === 'password' && field.name === 'newPassword' && (
                         <span className="toggle-password-icon" onClick={toggleNewPasswordVisibility}>
-                            <img src={showNewPassword ? ViewIcon : HideIcon} alt="toggle" />
+                            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </span>
                     )}
 
