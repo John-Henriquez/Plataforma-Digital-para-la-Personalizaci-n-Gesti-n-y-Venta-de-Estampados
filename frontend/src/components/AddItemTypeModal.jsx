@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCreateItemType } from '../hooks/itemType/useCreateItemType.jsx';
+import { useUpdateItemType } from '../hooks/itemType/useUpdateItemType.jsx';
 import { 
   Shirt, Coffee, GlassWater, Key, Table, Notebook, Gift, 
   GraduationCap, Baby, Backpack, Smartphone, FlaskConical 
@@ -14,6 +15,7 @@ import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
 
 const PRINTING_OPTIONS = ['sublimación', 'DTF', 'vinilo'];
 const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
+
 const ICON_CATEGORIES = [
   {
     name: 'Ropa y Textiles',
@@ -49,7 +51,17 @@ const ICON_CATEGORIES = [
   },
 ];
 
-const AddItemTypeModal = ({ open, onClose, onCreated }) => {
+const initialFormState = {
+  name: '',
+  description: '',
+  category: '',
+  printingMethods: [],
+  hasSizes: false,
+  sizesAvailable: [],
+  icon: ''
+};
+
+const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -60,30 +72,37 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
     icon: '' 
   });
 
-  const { addType, loading, error, clearError } = useCreateItemType();
+  const { addType, loading: creating } = useCreateItemType();
+  const { updateType, loading: updating } = useUpdateItemType();
+  const loading = creating || updating;
 
   useEffect(() => {
     if (open) {
-      setForm({
-        name: '',
-        description: '',
-        category: '',
-        printingMethods: [],
-        hasSizes: false,
-        sizesAvailable: [],
-        icon: ''
-      });
-      clearError();
+      if (editingType){
+        setForm({
+          name: editingType.name,
+          description: editingType.description || '',
+          category: editingType.category,
+          printingMethods: editingType.printingMethods || [],
+          hasSizes: editingType.hasSizes,
+          sizesAvailable: editingType.sizesAvailable || [],
+          icon: editingType.iconKey || ''
+        });
+      } else {
+        setForm(initialFormState);
+      }
     }
-  }, [open, clearError]);
+  }, [open, editingType]);
 
   useEffect(() => {
-    if (form.category === 'clothing') {
-      setForm(prev => ({ ...prev, hasSizes: true }));
-    } else if (form.category === 'object') {
-      setForm(prev => ({ ...prev, hasSizes: false, sizesAvailable: [] }));
+    if (!editingType) {
+      if (form.category === 'clothing') {
+        setForm(prev => ({ ...prev, hasSizes: true }));
+      } else if (form.category === 'object') {
+        setForm(prev => ({ ...prev, hasSizes: false, sizesAvailable: [] }));
+      }
     }
-  }, [form.category]);
+  }, [form.category, editingType]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -103,6 +122,7 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
       formData.append('category', form.category);
       formData.append('hasSizes', form.hasSizes.toString());
       formData.append('printingMethods', JSON.stringify(form.printingMethods));
+
       if (form.hasSizes) {
         formData.append('sizesAvailable', JSON.stringify(form.sizesAvailable));
       }
@@ -111,32 +131,26 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
         formData.append('iconKey', form.icon);
       }
 
-      console.log('=== Contenido de formData antes de enviar ===');
-      for (let pair of formData.entries()) {
-        console.log(`${pair[0]}: ${pair[1]}`);
+      if (editingType) {
+        await updateType(editingType.id, formData);
+        showSuccessAlert('¡Tipo actualizado!', 'El tipo de ítem se actualizó correctamente.');
+      } else {
+        await addType(formData);
+        showSuccessAlert('¡Tipo creado!', 'El tipo de ítem se agregó correctamente.');
       }
-      console.log('==============================================');
-
-      await addType(formData);
-      showSuccessAlert('¡Tipo creado!', 'El tipo de ítem se agregó correctamente.');
+      
       onCreated();
       onClose();
     } catch (error) {
       console.error(error);
-      showErrorAlert('Error', error || 'No se pudo crear el tipo.');
+      showErrorAlert('Error', error?.message || 'No se pudo completar la operación.');
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      className="add-item-modal"
-    >
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" className="add-item-modal">
       <DialogTitle className="add-item-modal-title">
-        Nuevo Tipo de Ítem
+        {editingType ? 'Editar Tipo de Ítem' : 'Nuevo Tipo de Ítem'}
       </DialogTitle>
       <DialogContent dividers className="add-item-modal-content">
         <TextField
@@ -166,6 +180,7 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
             name="category"
             value={form.category}
             onChange={handleChange}
+            disabled={!!editingType}
           >
             <MenuItem value="clothing">Ropa</MenuItem>
             <MenuItem value="object">Objeto</MenuItem>
@@ -188,7 +203,7 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
                   <selectedIcon.Icon size={20} />
                   {selectedIcon.label}
                 </Box>
-              ) : null;
+              ) : 'Sin ícono';
             }}
           >
             {ICON_CATEGORIES.map((category) => [
@@ -266,7 +281,7 @@ const AddItemTypeModal = ({ open, onClose, onCreated }) => {
           disabled={loading || !form.name || !form.category || !form.printingMethods.length}
           className="add-item-modal-button add-item-modal-button--primary"
         >
-          {loading ? 'Creando...' : 'Crear'}
+          {loading ? (editingType ? 'Actualizando...' : 'Creando...') : (editingType ? 'Actualizar' : 'Crear')}
         </Button>
       </DialogActions>
     </Dialog>

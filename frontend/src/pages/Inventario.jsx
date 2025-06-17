@@ -9,31 +9,39 @@ import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType';
 import { AuthContext } from '../context/AuthContext';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
 import {
-  TextField,
   Button,
   Grid,
+  TextField,
   Paper,
   Typography,
   CircularProgress,
   Alert,
   Box,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton
 } from '@mui/material';
+import { Edit, Delete, Restore } from '@mui/icons-material';
 import { Navigate } from 'react-router-dom';
 import '../styles/pages/inventario.css';
 
 const Inventario = () => {
   const [openAddType, setOpenAddType] = useState(false);
-  const [openAddStock, setOpenAddStock] = useState(false); // Corregido
+  const [editingType, setEditingType] = useState(null);
+
+  const { deleteItemStock } = useDeleteItemStock();
 
   const { isAuthenticated, user } = useContext(AuthContext);
   const { itemStock, loading: stockLoading, error: stockError, filters, setFilters, refetch: refetchStock } = useItemStock();
   const { types: itemTypes, fetchTypes, loading: typesLoading, error: typesError } = useItemTypes();
-  const { deleteItemStock } = useDeleteItemStock();
-  const { deleteItemType } = useDeleteItemType();
+  
+  const { removeType  } = useDeleteItemType();
   const { restoreType } = useRestoreItemType();
   const { handleEdit } = useEditItemStock();
 
-  // Cargar tipos de ítems al montar el componente
+  
   useEffect(() => {
     fetchTypes();
   }, [fetchTypes]);
@@ -58,7 +66,9 @@ const Inventario = () => {
         showSuccessAlert('Eliminado', 'El item fue eliminado correctamente');
         refetchStock();
       } catch (error) {
-        showErrorAlert('Error al eliminar', error || 'Ocurrió un error inesperado');
+        console.error(error);
+        const message = error?.message || 'Ocurrió un error inesperado';
+        showErrorAlert('Error al eliminar', message);
       }
     }
   };
@@ -67,11 +77,13 @@ const Inventario = () => {
     const result = await deleteDataAlert();
     if (result.isConfirmed) {
       try {
-        await deleteItemType(id);
+        await removeType(id);
         showSuccessAlert('Eliminado', 'El tipo de ítem fue eliminado correctamente');
         fetchTypes();
       } catch (error) {
-        showErrorAlert('Error al eliminar', error || 'Ocurrió un error inesperado');
+        console.error(error);
+        const message = error?.message || 'Ocurrió un error inesperado';
+        showErrorAlert('Error al eliminar', message);
       }
     }
   };
@@ -82,8 +94,18 @@ const Inventario = () => {
       showSuccessAlert('Restaurado', 'El tipo de ítem fue restaurado correctamente');
       fetchTypes();
     } catch (error) {
-      showErrorAlert('Error al restaurar', error || 'Ocurrió un error inesperado');
+      showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
     }
+  };
+
+  const handleEditType = (type) => {
+    setEditingType(type);
+    setOpenAddType(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenAddType(false);
+    setEditingType(null);
   };
 
   return (
@@ -269,8 +291,8 @@ const Inventario = () => {
         open={openAddType}
         onClose={() => setOpenAddType(false)}
         onCreated={() => fetchTypes()}
+        editingType={editingType}
       />
-      {/* Agregar modal para añadir stock si es necesario */}
     </Box>
   );
 };
