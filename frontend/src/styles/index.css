@@ -97,6 +97,6 @@ button:focus-visible {
   }
 }
 
-.swal2-popup {
-  z-index: 9999;
+.swal2-container {
+  z-index: 1400 !important;
 }

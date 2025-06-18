@@ -1,10 +1,12 @@
 import { useEffect, useState, useContext } from 'react';
 import AddItemTypeModal from '../components/AddItemTypeModal.jsx';
+import TrashModal from '../components/TrashModal.jsx';
 import useItemStock from '../hooks/itemStock/useItemStock.jsx';
 import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock';
 import useEditItemStock from '../hooks/itemStock/useEditItemStock';
 import { useItemTypes } from '../hooks/itemType/useItemType.jsx';
 import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType';
+import { useDeletedItemTypes } from '../hooks/itemType/useDeletedItemType';
 import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType';
 import { AuthContext } from '../context/AuthContext';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
@@ -17,13 +19,8 @@ import {
   CircularProgress,
   Alert,
   Box,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  IconButton
+
 } from '@mui/material';
-import { Edit, Delete, Restore } from '@mui/icons-material';
 import { Navigate } from 'react-router-dom';
 import '../styles/pages/inventario.css';
 
@@ -41,7 +38,17 @@ const Inventario = () => {
   const { restoreType } = useRestoreItemType();
   const { handleEdit } = useEditItemStock();
 
+  const [openTrash, setOpenTrash] = useState(false);
+  const [trashedTypes, setTrashedTypes] = useState([]);
   
+  const {
+  deletedTypes,
+  fetchDeletedTypes,
+  loading: deletedLoading,
+  error: deletedError,
+} = useDeletedItemTypes();
+
+
   useEffect(() => {
     fetchTypes();
   }, [fetchTypes]);
@@ -56,6 +63,10 @@ const Inventario = () => {
 
   const applyFilters = () => {
     refetchStock();
+  };
+  
+  const handleCloseTrash = () => {
+    setOpenTrash(false);
   };
 
   const handleDeleteStock = async (id) => {
@@ -108,6 +119,17 @@ const Inventario = () => {
     setEditingType(null);
   };
 
+const handleGoTrash = async () => {
+  try {
+    await fetchDeletedTypes(); 
+    setOpenTrash(true);
+  } catch (err) {
+    console.error('[Inventario] Error al obtener eliminados:', err);
+  }
+};
+
+
+
   return (
     <Box className="inventory-container">
       <Typography className="inventory-title" variant="h4" gutterBottom>
@@ -146,7 +168,7 @@ const Inventario = () => {
               variant="contained"
               onClick={applyFilters}
               fullWidth
-              className="inventory-button"
+              className="inventory-button inventory-button--contained inventory-button--compact"
             >
               Aplicar Filtros
             </Button>
@@ -164,13 +186,20 @@ const Inventario = () => {
             <Typography variant="h5">
               Tipos de Productos ({itemTypes.length})
             </Typography>
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Button
                 variant="contained"
-                className="inventory-button inventory-button--primary"
+                className="inventory-button inventory-button--contained inventory-button--compact"
                 onClick={() => setOpenAddType(true)}
               >
                 Nuevo Tipo
+              </Button>
+              <Button
+                variant="outlined"
+                className="inventory-button inventory-button--outlined"
+                onClick={handleGoTrash}
+              >
+                Papelera
               </Button>
             </Box>
             <ul className="inventory-list">
@@ -194,7 +223,7 @@ const Inventario = () => {
                       size="small"
                       onClick={() => handleDeleteType(type.id)}
                       color="error"
-                      className="inventory-button"
+                      className="inventory-button inventory-button--error inventory-button--small"
                     >
                       Eliminar
                     </Button>
@@ -203,7 +232,7 @@ const Inventario = () => {
                         variant="outlined"
                         size="small"
                         onClick={() => handleRestoreType(type.id)}
-                        className="inventory-button"
+                        className="inventory-button inventory-button--success inventory-button--small"
                       >
                         Restaurar
                       </Button>
@@ -287,13 +316,23 @@ const Inventario = () => {
           </Paper>
         </>
       )}
+      
       <AddItemTypeModal
         open={openAddType}
         onClose={() => setOpenAddType(false)}
         onCreated={() => fetchTypes()}
         editingType={editingType}
       />
+
+      <TrashModal 
+        open={openTrash}
+        onClose={handleCloseTrash}
+        trashedTypes={deletedTypes} 
+        onRestore={handleRestoreType}
+        onRefresh={fetchDeletedTypes}
+      />
     </Box>
+    
   );
 };
 

@@ -1,20 +1,110 @@
 @keyframes heartbeat {
-  0%, 100% { transform: scaleX(1); }
-  25%, 75% { transform: scaleX(1.2); }
+  0% {
+    transform: scale(1);
+    animation-timing-function: ease-out;
+  }
+  15% {
+    transform: scale(1.1);
+    animation-timing-function: ease-in;
+  }
+  30% {
+    transform: scale(0.95);
+  }
+  45% {
+    transform: scale(1.05);
+  }
+  60% {
+    transform: scale(0.98);
+  }
+  75% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  0% {
+    opacity: 0;
+    transform: translateZ(0); /* Mejora el rendimiento en algunos navegadores */
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { 
-    transform: translateY(20px);
+  0% {
+    transform: translateY(20px) translateZ(0);
     opacity: 0;
   }
-  to { 
+  100% {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* Animaciones adicionales recomendadas */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Clases de aplicación */
+.animate {
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+
+.animate--fast {
+  animation-duration: 0.3s;
+}
+
+.animate--slow {
+  animation-duration: 0.7s;
+}
+
+.animate--infinite {
+  animation-iteration-count: infinite;
+}
+
+.animate--heartbeat {
+  animation-name: heartbeat;
+  animation-timing-function: ease-in-out;
+}
+
+.animate--fadeIn {
+  animation-name: fadeIn;
+}
+
+.animate--slideUp {
+  animation-name: slideUp;
+}
+
+.animate--pulse {
+  animation-name: pulse;
+}
+
+.animate--bounce {
+  animation-name: bounce;
 }

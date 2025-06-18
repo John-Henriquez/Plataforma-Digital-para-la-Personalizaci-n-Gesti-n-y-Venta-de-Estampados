@@ -133,4 +133,49 @@ export const itemTypeService = {
             return [null, "Error al restaurar el tipo de ítem"];
         }
     },
+    async getDeletedItemTypes() {
+        try {
+            const repo = AppDataSource.getRepository(ItemType);
+            const itemTypes = await repo.find({
+            where: { isActive: false },
+            order: { name: "ASC" },
+            });
+            return [itemTypes, null];
+        } catch (error) {
+            console.error("Error en getDeletedItemTypes:", error);
+            return [null, "Error al obtener ítems eliminados"];
+        }
+    },
+    async forceDeleteItemType(id) {
+        try {
+            const repo = AppDataSource.getRepository(ItemType);
+            const itemType = await repo.findOne({ where: { id: parseInt(id) } });
+
+            if (!itemType) {
+            return [null, "Tipo de ítem no encontrado"];
+            }
+
+            await repo.remove(itemType); 
+            return [{ id: parseInt(id) }, null];
+        } catch (error) {
+            console.error("Error en forceDeleteItemType:", error);
+            return [null, "Error al eliminar permanentemente el tipo de ítem"];
+        }
+    },
+    async emptyTrash() {
+        try {
+            const repo = AppDataSource.getRepository(ItemType);
+            const deletedItems = await repo.find({ where: { isActive: false } });
+
+            if (deletedItems.length === 0) {
+            return [[], null];
+            }
+
+            await repo.remove(deletedItems);
+            return [deletedItems.map(item => ({ id: item.id })), null];
+        } catch (error) {
+            console.error("Error en emptyTrash:", error);
+            return [null, "Error al vaciar la papelera"];
+        }
+    },
 }

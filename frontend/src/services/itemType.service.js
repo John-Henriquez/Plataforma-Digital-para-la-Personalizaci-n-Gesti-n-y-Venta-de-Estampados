@@ -59,3 +59,32 @@ export async function restoreItemType(id) {
     throw error.response?.data?.message || 'Error al restaurar el tipo de ítem';
   }
 }
+export async function getDeletedItemTypes() {
+  try {
+    const { data } = await axios.get('/item-types/deleted');
+    return data.data || [];
+  } catch (error) {
+    console.error('Error al obtener tipos de ítems eliminados:', error);
+    throw error.response?.data?.message || 'Error al obtener tipos de ítems eliminados';
+  }
+}
+
+export async function forceDeleteItemType(id) {
+  try {
+    const { data } = await axios.delete(`/item-types/force/${id}`);
+    return data.data;
+  } catch (error) {
+    console.error(`Error al eliminar permanentemente el tipo de ítem ${id}:`, error);
+    throw error.response?.data?.message || 'Error al eliminar permanentemente el tipo de ítem';
+  }
+}
+
+export async function emptyTrash() {
+  try {
+    const { data } = await axios.delete('/item-types/trash/empty');
+    return data.data;
+  } catch (error) {
+    console.error('Error al vaciar la papelera:', error);
+    throw error.response?.data?.message || 'Error al vaciar la papelera';
+  }
+}

@@ -200,4 +200,43 @@ export const itemTypeController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+    async getDeletedItemTypes(req, res) {
+        try {
+            const [deletedItemTypes, error] = await itemTypeService.getDeletedItemTypes();
+            if (error) return handleErrorClient(res, 404, error);
+
+            handleSuccess(res, 200, "Tipos de ítem eliminados obtenidos", deletedItemTypes);
+        } catch (error) {
+            console.error("Error en getDeletedItemTypes:", error);
+            handleErrorServer(res, 500, error.message);
+        }
+    },
+    async forceDeleteItemType(req, res) {
+        try {
+            const { id } = req.params;
+
+            if (!id || isNaN(id)) {
+                return handleErrorClient(res, 400, "ID inválido");
+            }
+
+            const [result, error] = await itemTypeService.forceDeleteItemType(id);
+            if (error) return handleErrorClient(res, 404, error);
+
+            handleSuccess(res, 200, "Tipo de ítem eliminado permanentemente", result);
+        } catch (error) {
+            console.error("Error en forceDeleteItemType:", error);
+            handleErrorServer(res, 500, error.message);
+        }
+    },
+    async emptyTrash(req, res) {
+        try {
+            const [deletedItems, error] = await itemTypeService.emptyTrash();
+            if (error) return handleErrorClient(res, 400, error);
+
+            handleSuccess(res, 200, "Papelera vaciada", deletedItems);
+        } catch (error) {
+            console.error("Error en emptyTrash:", error);
+            handleErrorServer(res, 500, error.message);
+        }
+    }
 }
