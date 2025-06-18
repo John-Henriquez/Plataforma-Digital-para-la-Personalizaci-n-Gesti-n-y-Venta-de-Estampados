@@ -2,12 +2,9 @@ import Table from '@components/Table';
 import useUsers from '@hooks/users/useGetUsers.jsx';
 import Search from '../components/Search';
 import Popup from '../components/Popup';
-import DeleteIcon from '../assets/deleteIcon.svg';
-import UpdateIcon from '../assets/updateIcon.svg';
-import UpdateIconDisable from '../assets/updateIconDisabled.svg';
-import DeleteIconDisable from '../assets/deleteIconDisabled.svg';
+import { Trash2, Pencil } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import '@styles/users.css';
+import './../styles/pages/Users.css';
 import useEditUser from '@hooks/users/useEditUser';
 import useDeleteUser from '@hooks/users/useDeleteUser';
 
@@ -49,20 +46,29 @@ const Users = () => {
           <h1 className='title-table'>Usuarios</h1>
           <div className='filter-actions'>
             <Search value={filterRut} onChange={handleRutFilterChange} placeholder={'Filtrar por rut'} />
-            <button onClick={handleClickUpdate} disabled={dataUser.length === 0}>
-              {dataUser.length === 0 ? (
-                <img src={UpdateIconDisable} alt="edit-disabled" />
-              ) : (
-                <img src={UpdateIcon} alt="edit" />
-              )}
+
+            <button 
+              onClick={handleClickUpdate} 
+              disabled={dataUser.length === 0}
+              className="icon-button"  // Clase para estilos comunes
+            >
+              <Pencil 
+                size={20}  // Tamaño estándar
+                className={dataUser.length === 0 ? "icon-disabled" : "icon-active"} 
+              />
             </button>
-            <button className='delete-user-button' disabled={dataUser.length === 0} onClick={() => handleDelete(dataUser)}>
-              {dataUser.length === 0 ? (
-                <img src={DeleteIconDisable} alt="delete-disabled" />
-              ) : (
-                <img src={DeleteIcon} alt="delete" />
-              )}
+
+            <button 
+              className='delete-user-button icon-button' 
+              disabled={dataUser.length === 0} 
+              onClick={() => handleDelete(dataUser)}
+            >
+              <Trash2 
+                size={20}
+                className={dataUser.length === 0 ? "icon-disabled" : "icon-active"} 
+              />
             </button>
+
           </div>
         </div>
         <Table

@@ -1,0 +1,97 @@
+.table-container {
+  width: 90%;
+  max-width: 1400px;
+  margin: 0 auto;
+  overflow-x: auto; 
+}
+
+.top-table {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.title-table {
+  color: var(--gray-700);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm);
+  background: white;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.icon-button:hover:not(:disabled) {
+  background-color: var(--gray-100);
+}
+
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.icon-active {
+  color: var(--gray-700);
+}
+
+.icon-disabled {
+  color: var(--gray-300);
+}
+
+.delete-user-button {
+  background-color: var(--error);
+  color: white;
+  border: none;
+}
+
+.delete-user-button:hover:not(:disabled) {
+  background-color: var(--error-dark);
+}
+
+/* Responsivo */
+@media (max-width: 767px) {
+  .top-table {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .table-container {
+    width: 100%;
+  }
+
+  .popup {
+    width: 350px;
+    height: 600px;
+  }
+
+  .popup .form {
+    padding: var(--spacing-md);
+  }
+}

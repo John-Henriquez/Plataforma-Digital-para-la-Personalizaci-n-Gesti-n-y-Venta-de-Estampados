@@ -1,7 +1,6 @@
 import Form from './Form';
-import '@styles/popup.css';
-import CloseIcon from '@assets/XIcon.svg';
-import QuestionIcon from '@assets/QuestionCircleIcon.svg';
+import './../styles/components/Popup.css';
+import { X, HelpCircle } from 'lucide-react';
 
 export default function Popup({ show, setShow, data, action }) {
     const userData = data && data.length > 0 ? data[0] : {};
@@ -14,10 +13,10 @@ export default function Popup({ show, setShow, data, action }) {
     return (
         <div>
             { show && (
-            <div className="bg">
+            <div className="popup-bg">
                 <div className="popup">
-                    <button className='close' onClick={() => setShow(false)}>
-                        <img src={CloseIcon} />
+                    <button className='popup-close' onClick={() => setShow(false)}>
+                        <X size={20} className="close-icon" />
                     </button>
                     <Form
                         title="Editar usuario"
@@ -75,7 +74,7 @@ export default function Popup({ show, setShow, data, action }) {
                                     <span>
                                         Nueva contraseña
                                         <span className='tooltip-icon'>
-                                            <img src={QuestionIcon} />
+                                            <HelpCircle size={16} className="question-icon" />
                                             <span className='tooltip-text'>Este campo es opcional</span>
                                         </span>
                                     </span>

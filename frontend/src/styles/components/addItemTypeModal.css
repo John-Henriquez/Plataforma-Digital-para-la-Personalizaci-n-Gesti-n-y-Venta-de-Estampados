@@ -1,0 +1,58 @@
+.add-item-modal {
+  font-family: var(--font-family);
+}
+
+.add-item-modal-title {
+  color: var(--primary-dark);
+  font-weight: 600;
+  padding: var(--spacing-md);
+}
+
+.add-item-modal-content {
+  padding: var(--spacing-lg);
+  background-color: var(--gray-100);
+  border-radius: var(--border-radius-md);
+}
+
+.add-item-modal-field {
+  margin-bottom: var(--spacing-md);
+}
+
+.add-item-modal-image-preview {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--gray-300);
+  margin-top: var(--spacing-sm);
+}
+
+.add-item-modal-actions {
+  padding: var(--spacing-md);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+}
+
+.add-item-modal-button {
+  border-radius: var(--border-radius-sm);
+  text-transform: none;
+  font-weight: 500;
+  transition: var(--transition-normal);
+}
+
+.add-item-modal-button--primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+.add-item-modal-button--primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.add-item-modal-button--cancel {
+  color: var(--gray-700);
+}
+
+.add-item-modal-button--cancel:hover {
+  background-color: var(--gray-200);
+}

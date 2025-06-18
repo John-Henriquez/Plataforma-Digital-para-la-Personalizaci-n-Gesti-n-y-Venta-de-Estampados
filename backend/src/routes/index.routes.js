@@ -2,14 +2,17 @@
 import { Router } from "express";
 import userRoutes from "./user.routes.js";
 import authRoutes from "./auth.routes.js";
-import inventoryRoutes from "./inventory.routes.js";
+import itemTypeRoutes from "./itemType.routes.js";
+import itemStockRoutes from "./itemStock.routes.js";
 //import sendMail from "./email.routes.js";
 
 const router = Router();
 
-router
-    .use("/auth", authRoutes)
-    .use("/user", userRoutes)
-    .use("/inventory", inventoryRoutes);
-    //.use("/sendMail", sendMail)
+router.use("/auth", authRoutes);
+router.use("/user", userRoutes);
+
+router.use("/item-types", itemTypeRoutes);
+router.use("/item-stocks", itemStockRoutes); 
+// router.use("/sendMail", sendMail);
+
 export default router;

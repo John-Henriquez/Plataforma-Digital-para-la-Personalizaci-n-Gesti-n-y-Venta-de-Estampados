@@ -3,7 +3,8 @@ import { register } from '@services/auth.service.js';
 import Form from "@components/Form";
 import useRegister from '@hooks/auth/useRegister.jsx';
 import { showErrorAlert, showSuccessAlert } from '@helpers/sweetAlert.js';
-import '@styles/form.css';
+import './../styles/components/Form.css';
+import './../styles/pages/register.css';
 
 const Register = () => {
 	const navigate = useNavigate();
@@ -34,8 +35,9 @@ const registerSubmit = async (data) => {
 const patternRut = new RegExp(/^(?:(?:[1-9]\d{0}|[1-2]\d{1})(\.\d{3}){2}|[1-9]\d{6}|[1-2]\d{7}|29\.999\.999|29999999)-[\dkK]$/)
 
 	return (
-		<main className="container">
-			<Form
+		<main className="register-page">
+            <div className='register-card'>
+                			<Form
 				title="Crea tu cuenta"
 				fields={[
 					{
@@ -100,6 +102,7 @@ const patternRut = new RegExp(/^(?:(?:[1-9]\d{0}|[1-2]\d{1})(\.\d{3}){2}|[1-9]\d
 					</p>
 				}
 			/>
+            </div>
 		</main>
 	);
 };
