@@ -15,7 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
 import { useEmptyTrash } from '../hooks/itemType/useEmptyTrash';
 import { useForceDeleteItemType } from '../hooks/itemType/useForceDeleteItemType';
-import './../styles/components/TrashModal.css';
+import './../styles/components/trashModal.css';
 
 const TrashModal = ({ open, onClose, trashedTypes, onRestore, onRefresh }) => {
   const { empty, loading: emptyingTrash } = useEmptyTrash();

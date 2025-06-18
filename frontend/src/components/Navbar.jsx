@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { logout } from '@services/auth.service.js';
-import './../styles/components/Navbar.css';
+import './../styles/components/navbar.css';
 import { useState, useEffect, useRef } from "react";
 import { IconMenu2, IconX, IconUser, IconLogout, IconHome, IconUsers, IconSettings, IconPackage } from '@tabler/icons-react';
 

@@ -1,5 +1,5 @@
 import Form from './Form';
-import './../styles/components/Popup.css';
+import './../styles/components/popup.css';
 import { X, HelpCircle } from 'lucide-react';
 
 export default function Popup({ show, setShow, data, action }) {

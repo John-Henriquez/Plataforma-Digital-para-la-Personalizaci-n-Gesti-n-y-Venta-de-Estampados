@@ -4,7 +4,7 @@ import Search from '../components/Search';
 import Popup from '../components/Popup';
 import { Trash2, Pencil } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import './../styles/pages/Users.css';
+import './../styles/pages/users.css';
 import useEditUser from '@hooks/users/useEditUser';
 import useDeleteUser from '@hooks/users/useDeleteUser';
 

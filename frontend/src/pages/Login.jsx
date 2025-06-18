@@ -2,8 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '@services/auth.service.js';
 import Form from '@components/Form';
 import useLogin from '@hooks/auth/useLogin.jsx';
-import './../styles/pages/Login.css';
-import './../styles/components/Form.css';
+import './../styles/pages/login.css';
+import './../styles/components/form.css';
 
 
 
