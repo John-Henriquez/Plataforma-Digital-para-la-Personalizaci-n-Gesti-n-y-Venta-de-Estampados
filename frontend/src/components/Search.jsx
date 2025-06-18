@@ -1,4 +1,4 @@
-import './../styles/components/Search.css';
+import './../styles/components/search.css';
 
 function Search({ value, onChange, placeholder }) {
     return (
