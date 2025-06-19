@@ -1,4 +1,4 @@
-import Form from './Form';
+import Form from './Form.jsx';
 import './../styles/components/popup.css';
 import { X, HelpCircle } from 'lucide-react';
 

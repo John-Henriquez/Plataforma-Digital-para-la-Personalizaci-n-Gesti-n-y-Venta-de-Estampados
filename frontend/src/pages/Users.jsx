@@ -1,12 +1,12 @@
-import Table from '@components/Table';
-import useUsers from '@hooks/users/useGetUsers.jsx';
-import Search from '../components/Search';
-import Popup from '../components/Popup';
+import Table from '../components/Table.jsx';
+import useUsers from '../hooks/users/useGetUsers.jsx';
+import Search from '../components/Search.jsx';
+import Popup from '../components/Popup.jsx';
 import { Trash2, Pencil } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import './../styles/pages/users.css';
-import useEditUser from '@hooks/users/useEditUser';
-import useDeleteUser from '@hooks/users/useDeleteUser';
+import useEditUser from '../hooks/users/useEditUser.jsx';
+import useDeleteUser from '../hooks/users/useDeleteUser.jsx';
 
 const Users = () => {
   const { users, fetchUsers, setUsers } = useUsers();

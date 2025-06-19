@@ -1,7 +1,7 @@
-import axios from './root.service.js';
+import axios from './root.service';
 import cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
-import { convertirMinusculas } from '@helpers/formatData.js';
+import { convertirMinusculas } from '../helpers/formatData';
 
 export async function login(dataUser) {
     try {

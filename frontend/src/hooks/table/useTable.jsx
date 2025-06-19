@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import "tabulator-tables/dist/css/tabulator.min.css";
-import '@styles/table.css';
+import '../../styles/components/table.css';
 
 function useTable({ data, columns, filter, dataToFilter, initialSortName, onSelectionChange }) {
     const tableRef = useRef(null);

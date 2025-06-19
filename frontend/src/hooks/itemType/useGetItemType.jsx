@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getItemTypeById } from '../../services/itemType.service.js';
+import { getItemTypeById } from '../../services/itemType.service';
 
 export const useGetItemType = () => {
   const [type, setType] = useState(null);

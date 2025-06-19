@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getItemStock } from '../../services/itemStock.service.js';
-import { getItemTypes } from '../../services/itemType.service.js';
+import { getItemStock } from '../../services/itemStock.service';
+import { getItemTypes } from '../../services/itemType.service';
 
 const initialFilters = {
   color: '',

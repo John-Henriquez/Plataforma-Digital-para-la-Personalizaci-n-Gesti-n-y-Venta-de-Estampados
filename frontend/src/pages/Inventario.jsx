@@ -2,14 +2,14 @@ import { useEffect, useState, useContext } from 'react';
 import AddItemTypeModal from '../components/AddItemTypeModal.jsx';
 import TrashModal from '../components/TrashModal.jsx';
 import useItemStock from '../hooks/itemStock/useItemStock.jsx';
-import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock';
-import useEditItemStock from '../hooks/itemStock/useEditItemStock';
+import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock.jsx';
+import useEditItemStock from '../hooks/itemStock/useEditItemStock.jsx';
 import { useItemTypes } from '../hooks/itemType/useItemType.jsx';
-import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType';
-import { useDeletedItemTypes } from '../hooks/itemType/useDeletedItemType';
-import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType';
-import { AuthContext } from '../context/AuthContext';
-import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
+import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType.jsx';
+import { useDeletedItemTypes } from '../hooks/itemType/useDeletedItemType.jsx';
+import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType.jsx';
+import { AuthContext } from '../context/AuthContext.jsx';
+import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
 import {
   Button,
   Grid,

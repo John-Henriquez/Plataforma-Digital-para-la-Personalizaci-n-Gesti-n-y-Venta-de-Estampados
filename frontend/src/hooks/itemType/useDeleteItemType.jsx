@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { deleteItemType } from '../../services/itemType.service.js';
+import { deleteItemType } from '../../services/itemType.service';
 
 export const useDeleteItemType = () => {
   const [loading, setLoading] = useState(false);

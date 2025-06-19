@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getItemTypes, createItemType } from '../../services/itemType.service.js';
+import { getItemTypes, createItemType } from '../../services/itemType.service';
 
 export const useItemTypes = () => {
   const [types, setTypes] = useState([]);

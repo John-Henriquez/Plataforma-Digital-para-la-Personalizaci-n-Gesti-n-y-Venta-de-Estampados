@@ -11,7 +11,7 @@ import {
   Button, TextField, Select, MenuItem, InputLabel, FormControl,
   Checkbox, OutlinedInput, Chip, Box, ListSubheader
 } from '@mui/material';
-import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
+import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
 
 const PRINTING_OPTIONS = ['sublimación', 'DTF', 'vinilo'];
 const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];

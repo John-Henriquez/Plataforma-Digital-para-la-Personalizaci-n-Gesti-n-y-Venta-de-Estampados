@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { deleteItemStock as deleteItemStockService } from '../../services/itemStock.service.js';
+import { deleteItemStock as deleteItemStockService } from '../../services/itemStock.service';
 
 const useDeleteItemStock = () => {
   const [loading, setLoading] = useState(false);

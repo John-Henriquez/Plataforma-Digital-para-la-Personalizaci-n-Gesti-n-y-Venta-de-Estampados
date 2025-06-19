@@ -1,4 +1,4 @@
-import { useAuth } from '@context/AuthContext'; // Use useAuth instead of AuthContext
+import { useAuth } from '../context/AuthContext.jsx'; // Use useAuth instead of AuthContext
 import { Typography, Button, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 

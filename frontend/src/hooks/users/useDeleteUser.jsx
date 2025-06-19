@@ -1,5 +1,5 @@
-import { deleteUser } from '@services/user.service.js';
-import { deleteDataAlert, showErrorAlert, showSuccessAlert } from '@helpers/sweetAlert.js';
+import { deleteUser } from '../../services/user.service';
+import { deleteDataAlert, showErrorAlert, showSuccessAlert } from '../../helpers/sweetAlert';
 
 const useDeleteUser = (fetchUsers, setDataUser) => {
     const handleDelete = async (dataUser) => {

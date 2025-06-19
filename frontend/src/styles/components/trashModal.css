@@ -78,10 +78,16 @@
   font-weight: 500;
   text-transform: none;
   letter-spacing: 0.5px;
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
   transition: all var(--transition-normal);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  min-width: 90px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-width: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-family: var(--font-family);
+  border-width: 1px;
+  border-style: solid;
 }
 
 .trash-modal__button--restore {
@@ -93,6 +99,8 @@
 .trash-modal__button--restore:hover {
   background-color: var(--success-dark);
   border-color: var(--success-dark);
+  box-shadow: var(--shadow-sm);
+  color: white;
 }
 
 .trash-modal__button--delete {
@@ -102,7 +110,9 @@
 }
 
 .trash-modal__button--delete:hover {
-  background-color: var(--error-light);
+  background-color: var(--error-dark);
+  box-shadow: var(--shadow-sm);
+  color: white;
 }
 
 .trash-modal__button--close {
@@ -118,11 +128,15 @@
 .trash-modal__button--empty {
   background-color: var(--error);
   color: white;
-  border: 1px solid var(--error);
+  border-color: var(--error);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-weight: 600;
 }
 
 .trash-modal__button--empty:hover {
   background-color: var(--error-dark);
+  border-color: var(--error-dark);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Footer */

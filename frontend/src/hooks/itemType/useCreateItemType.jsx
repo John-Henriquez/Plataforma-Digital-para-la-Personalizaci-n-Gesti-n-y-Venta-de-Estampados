@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { createItemType } from '../../services/itemType.service.js';
+import { createItemType } from '../../services/itemType.service';
 
 export const useCreateItemType = () => {
   const [loading, setLoading] = useState(false);

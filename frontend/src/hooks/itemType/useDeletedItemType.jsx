@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getDeletedItemTypes } from '../../services/itemType.service.js';
+import { getDeletedItemTypes } from '../../services/itemType.service';
 
 export const useDeletedItemTypes = () => {
   const [deletedTypes, setDeletedTypes] = useState([]);

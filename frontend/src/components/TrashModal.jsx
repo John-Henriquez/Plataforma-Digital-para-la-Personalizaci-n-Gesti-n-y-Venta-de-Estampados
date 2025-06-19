@@ -9,12 +9,15 @@ import {
   Button,
   Box,
   Typography,
-  IconButton
+  IconButton,
 } from '@mui/material';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import RestoreFromTrashIcon from '@mui/icons-material/RestoreFromTrash';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import CloseIcon from '@mui/icons-material/Close';
-import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert.js';
-import { useEmptyTrash } from '../hooks/itemType/useEmptyTrash';
-import { useForceDeleteItemType } from '../hooks/itemType/useForceDeleteItemType';
+import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
+import { useEmptyTrash } from '../hooks/itemType/useEmptyTrash.jsx';
+import { useForceDeleteItemType } from '../hooks/itemType/useForceDeleteItemType.jsx';
 import './../styles/components/trashModal.css';
 
 const TrashModal = ({ open, onClose, trashedTypes, onRestore, onRefresh }) => {
@@ -39,14 +42,24 @@ const TrashModal = ({ open, onClose, trashedTypes, onRestore, onRefresh }) => {
     }
   };
 
-  const handleForceDelete = async (id) => {
+const handleForceDelete = async (id) => {
+  const result = await deleteDataAlert(
+    '¿Eliminar permanentemente este tipo?',
+    'Esta acción no se puede deshacer.'
+  );
+
+  if (result.isConfirmed) {
     try {
       await forceDelete(id);
+      showSuccessAlert('Eliminado', 'El tipo ha sido eliminado permanentemente.');
       onRefresh();
     } catch (err) {
       console.error(`[handleForceDelete] Error eliminando ID ${id}:`, err);
+      showErrorAlert('Error al eliminar', 'Ocurrió un problema al eliminar el tipo.');
     }
-  };
+  }
+};
+
 
   const handleRestore = (id) => {
     onRestore(id);
@@ -69,7 +82,9 @@ const TrashModal = ({ open, onClose, trashedTypes, onRestore, onRefresh }) => {
       <DialogContent className="trash-modal__content">
         {trashedTypes.length === 0 ? (
           <Box className="trash-modal__empty-state">
-            <Typography variant="body1">La papelera está vacía</Typography>
+            <Typography variant="h6" color="textSecondary" fontStyle="italic">
+              La papelera está vacía 📭
+            </Typography>
           </Box>
         ) : (
           <List className="trash-modal__list">
@@ -84,17 +99,20 @@ const TrashModal = ({ open, onClose, trashedTypes, onRestore, onRefresh }) => {
                       size="small"
                       onClick={() => handleRestore(type.id)}
                       className="trash-modal__button trash-modal__button--restore"
+                      startIcon={<RestoreFromTrashIcon />}
                     >
                       Restaurar
                     </Button>
+
                     <Button
                       variant="outlined"
                       size="small"
                       onClick={() => handleForceDelete(type.id)}
                       disabled={deleting}
                       className="trash-modal__button trash-modal__button--delete"
+                      startIcon={<DeleteForeverIcon />}
                     >
-                      Eliminar
+                      Eliminar permanentemente
                     </Button>
                   </Box>
                 }
@@ -111,17 +129,12 @@ const TrashModal = ({ open, onClose, trashedTypes, onRestore, onRefresh }) => {
       </DialogContent>
       
       <DialogActions className="trash-modal__footer">
-        <Button 
-          onClick={onClose} 
-          className="trash-modal__button trash-modal__button--close"
-        >
-          Cerrar
-        </Button>
         {trashedTypes.length > 0 && (
           <Button 
             onClick={handleEmptyTrash}
             disabled={emptyingTrash}
             className="trash-modal__button trash-modal__button--empty"
+            startIcon={<DeleteSweepIcon />}
           >
             Vaciar Papelera
           </Button>
