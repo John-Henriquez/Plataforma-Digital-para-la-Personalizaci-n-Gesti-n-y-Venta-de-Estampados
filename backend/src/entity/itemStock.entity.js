@@ -49,6 +49,10 @@ const ItemStockSchema = new EntitySchema({
       type: "timestamp", 
       updateDate: true 
     },
+      deletedAt: {
+        type: "timestamp",
+        nullable: true,
+    }
   },
   relations: {
     itemType: {

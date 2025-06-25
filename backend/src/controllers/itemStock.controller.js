@@ -49,36 +49,43 @@ export const itemStockController = {
 
     async createItemStock(req, res) {
         try {
-        const { error } = itemStockSchema.validate(req.body);
+            const { error } = itemStockSchema.validate(req.body);
         if (error) {
             return handleErrorClient(res, 400, "Error de validación", error.details);
         }
 
-        const [newItem, serviceError] = await itemStockService.createItemStock(req.body);
+        const [newItem, serviceError] = await itemStockService.createItemStock({
+            ...req.body,
+            createdById: req.user.id  
+        });
+
         if (serviceError) return handleErrorClient(res, 400, serviceError);
-        
-        handleSuccess(res, 201, "Item creado en inventario", newItem);
+            handleSuccess(res, 201, "Item creado en inventario", newItem);
         } catch (error) {
-        handleErrorServer(res, 500, error.message);
+            handleErrorServer(res, 500, error.message);
         }
     },
 
     async updateItemStock(req, res) {
-    try {
-        const { id } = req.params;
-        if (!id || isNaN(parseInt(id))) {
-            return handleErrorClient(res, 400, "ID debe ser un número");
-        }
+        try {
+            const { id } = req.params;
+            if (!id || isNaN(parseInt(id))) {
+                return handleErrorClient(res, 400, "ID debe ser un número");
+            }
 
-        const { error } = itemStockUpdateSchema.validate(req.body);
-        if (error) {
-            return handleErrorClient(res, 400, "Error de validación", error.details);
-        }
+            const { error } = itemStockUpdateSchema.validate(req.body);
+            if (error) {
+                return handleErrorClient(res, 400, "Error de validación", error.details);
+            }
 
-        const [updatedItem, serviceError] = await itemStockService.updateItemStock(parseInt(id), req.body);
-        if (serviceError) return handleErrorClient(res, 400, serviceError);
-        
-        handleSuccess(res, 200, "Item actualizado", updatedItem);
+            const updateData = {
+                ...req.body,
+                updatedById: req.user.id
+            };
+            const [updatedItem, serviceError] = await itemStockService.updateItemStock(parseInt(id), updateData);
+            if (serviceError) return handleErrorClient(res, 400, serviceError);
+            
+            handleSuccess(res, 200, "Item actualizado", updatedItem);
         } catch (error) {
             console.error("Error en updateItemStock controller:", error.message, error.stack);
             handleErrorServer(res, 500, `Error interno del servidor: ${error.message}`);
@@ -96,5 +103,33 @@ export const itemStockController = {
         } catch (error) {
             handleErrorServer(res, 500, error.message);
         }
-    }
+    },
+    async emptyTrash(req, res) {
+    try {
+        const [deletedCount, error] = await itemStockService.emptyTrash();
+        if (error) return handleErrorClient(res, 500, error);
+
+        handleSuccess(res, 200, `Papelera vaciada. Items eliminados: ${deletedCount}`);
+
+        } catch (error) {
+            handleErrorServer(res, 500, error.message);
+        }
+    },
+
+    async restoreItemStock(req, res) {
+        try {
+            const { id } = req.params;
+            if (!id || isNaN(parseInt(id))) {
+            return handleErrorClient(res, 400, "ID debe ser un número");
+            }
+
+            const [restoredItem, error] = await itemStockService.restoreItemStock(parseInt(id));
+            if (error) return handleErrorClient(res, 404, error);
+
+            handleSuccess(res, 200, "Item restaurado", restoredItem);
+        } catch (error) {
+            handleErrorServer(res, 500, error.message);
+        }
+    },
+
 }

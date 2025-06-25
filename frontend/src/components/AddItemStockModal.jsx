@@ -50,6 +50,10 @@ const handleSubmit = async () => {
       price: parseInt(form.price, 10),
       minStock: parseInt(form.minStock, 10),
     };
+    
+    if (!editingStock) {
+      payload.itemTypeId = form.itemTypeId;
+    }
 
     // Incluir imágenes solo si hay
     if (filteredImages.length > 0) {
@@ -77,8 +81,14 @@ const handleSubmit = async () => {
     onClose();
 
   } catch (error) {
-    console.error('❌ Error del backend:', error.response?.data || error.message);
-    showErrorAlert('Error', error?.response?.data?.message || 'No se pudo guardar el stock.');
+    const backendError = error.response?.data;
+    console.error('❌ Error del backend:', backendError || error.message);
+    
+    if (backendError?.details) {
+      console.error('🧩 Detalles de validación:', backendError.details);
+    }
+
+    showErrorAlert('Error', backendError?.message || 'No se pudo guardar el stock.');
   }
 };
 
