@@ -43,6 +43,6 @@ const itemStockUpdateSchema = Joi.object({
   minStock: Joi.number().integer().min(0).optional(),
 
   isActive: Joi.boolean().optional()
-});
+}).unknown(false);
 
 export { itemStockSchema, itemStockUpdateSchema };

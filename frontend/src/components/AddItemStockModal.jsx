@@ -6,9 +6,10 @@ import {
 } from '@mui/material';
 import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
 import { useCreateItemStock } from '../hooks/itemStock/useCreateItemStock.jsx';
+import useEditItemStock from '../hooks/itemStock/useEditItemStock.jsx';
 import '../styles/components/addItemStockModal.css';
 
-const AddItemStockModal = ({ open, onClose, onCreated, itemTypes }) => {
+const AddItemStockModal = ({ open, onClose, onCreated, itemTypes, editingStock }) => {
   const [form, setForm] = useState({
     itemTypeId: '',
     hexColor: '#000000',
@@ -21,6 +22,7 @@ const AddItemStockModal = ({ open, onClose, onCreated, itemTypes }) => {
 
 const [selectedType, setSelectedType] = useState(null);
 const { addStock, loading } = useCreateItemStock();
+const { editItemStock } = useEditItemStock();
 
 
   useEffect(() => {
@@ -36,34 +38,76 @@ const { addStock, loading } = useCreateItemStock();
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
+const handleSubmit = async () => {
+  try {
+    // Filtrar imágenes no vacías
+    const filteredImages = form.images.filter(url => url.trim() !== '');
 
-  const handleSubmit = async () => {
-    try {
-      const payload = {
-        itemTypeId: form.itemTypeId,
-        hexColor: form.hexColor,
-        quantity: parseInt(form.quantity, 10),
-        price: parseInt(form.price, 10),
-        minStock: form.minStock ? parseInt(form.minStock, 10) : undefined,
-        images: form.images.filter(url => url.trim() !== ''),
-      };
+    // Armar payload básico
+    const payload = {
+      hexColor: form.hexColor,
+      quantity: parseInt(form.quantity, 10),
+      price: parseInt(form.price, 10),
+      minStock: parseInt(form.minStock, 10),
+    };
 
-      // Solo agrega size si tiene valor válido (y el itemType tiene tallas)
-      if (selectedType?.hasSizes && form.size) {
-        payload.size = form.size;
-      }
-
-      await addStock(payload);
-
-
-      showSuccessAlert('¡Stock agregado!', 'El ítem fue agregado correctamente.');
-      onCreated();
-      onClose();
-    } catch (error) {
-      console.error(error);
-      showErrorAlert('Error', error?.message || 'No se pudo crear el stock.');
+    // Incluir imágenes solo si hay
+    if (filteredImages.length > 0) {
+      payload.images = filteredImages;
     }
-  };
+
+    // Incluir talla solo si corresponde
+    if (selectedType?.hasSizes && form.size) {
+      payload.size = form.size;
+    }
+
+    // Mostrar payload antes de enviar
+    console.log("🧪 Payload enviado al backend:", payload);
+
+    // Editar o agregar stock
+    if (editingStock) {
+      await editItemStock(editingStock.id, payload);
+      showSuccessAlert('¡Stock actualizado!', 'El ítem fue actualizado correctamente.');
+    } else {
+      await addStock(payload);
+      showSuccessAlert('¡Stock agregado!', 'El ítem fue agregado correctamente.');
+    }
+
+    onCreated();
+    onClose();
+
+  } catch (error) {
+    console.error('❌ Error del backend:', error.response?.data || error.message);
+    showErrorAlert('Error', error?.response?.data?.message || 'No se pudo guardar el stock.');
+  }
+};
+
+
+  useEffect(() => {
+  if (editingStock) {
+    const matchingType = itemTypes.find(t => t.id === editingStock.itemTypeId);
+    setForm({
+      itemTypeId: matchingType ? editingStock.itemTypeId : '',
+      hexColor: editingStock.hexColor || '#000000',
+      size: editingStock.size || '',
+      quantity: editingStock.quantity.toString(),
+      price: editingStock.price.toString(),
+      minStock: editingStock.minStock?.toString() || '',
+      images: editingStock.images?.length ? editingStock.images : [''],
+    });
+  } else {
+    setForm({
+      itemTypeId: '',
+      hexColor: '#000000',
+      size: '',
+      quantity: '',
+      price: '',
+      minStock: '',
+      images: ['']
+    });
+  }
+}, [editingStock, itemTypes]);
+
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">

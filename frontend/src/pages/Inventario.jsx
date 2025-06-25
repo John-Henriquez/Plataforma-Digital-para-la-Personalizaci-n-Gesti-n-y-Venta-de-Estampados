@@ -91,6 +91,8 @@ const Inventario = () => {
   const [trashedTypes, setTrashedTypes] = useState([]);
   
   const [openAddStock, setOpenAddStock] = useState(false);
+  const [editingStock, setEditingStock] = useState(null);
+
 
   const { deletedTypes, fetchDeletedTypes, 
     loading: deletedLoading, 
@@ -176,9 +178,6 @@ const handleGoTrash = async () => {
     console.error('[Inventario] Error al obtener eliminados:', err);
   }
 };
-
-
-
   return (
     <Box className="inventory-container">
       <Typography className="inventory-title" variant="h4" gutterBottom>
@@ -351,7 +350,10 @@ const handleGoTrash = async () => {
                       <Button
                         variant="outlined"
                         size="small"
-                        onClick={() => handleEdit(item)}
+                          onClick={() => {
+                            setEditingStock(item);
+                            setOpenAddStock(true);
+                          }}
                         className="inventory-button"
                       >
                         Editar
@@ -390,9 +392,13 @@ const handleGoTrash = async () => {
       />
       <AddItemStockModal
         open={openAddStock}
-        onClose={() => setOpenAddStock(false)}
+          onClose={() => {
+          setOpenAddStock(false);
+          setEditingStock(null);
+        }}
         onCreated={refetchStock}
         itemTypes={itemTypes}
+        editingStock={editingStock}
       />
     </Box>
     

@@ -18,7 +18,7 @@ router.get("/", itemStockController.getItemStock);
 router.post("/", isAdmin, itemStockController.createItemStock);
 
 // PUT /api/item-stocks/:id (admin)
-router.put("/:id", isAdmin, itemStockController.updateItemStock);
+router.patch("/:id", isAdmin, itemStockController.updateItemStock);
 
 // DELETE /api/item-stocks/:id (admin)
 router.delete("/:id", isAdmin, itemStockController.deleteItemStock);

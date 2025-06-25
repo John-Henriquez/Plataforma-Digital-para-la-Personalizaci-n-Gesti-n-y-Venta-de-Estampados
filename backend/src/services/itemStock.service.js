@@ -1,6 +1,7 @@
 import { AppDataSource } from "../config/configDb.js";
 import ItemType from "../entity/itemType.entity.js";
 import ItemStock from "../entity/itemStock.entity.js";
+import { Not } from "typeorm";
 
 export const itemStockService = {
     async createItemStock(itemData) {

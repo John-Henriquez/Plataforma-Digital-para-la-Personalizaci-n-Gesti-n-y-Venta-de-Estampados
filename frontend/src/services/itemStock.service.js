@@ -22,14 +22,17 @@ export async function createItemStock(itemData) {
 }
 
 export async function updateItemStock(id, updatedData) {
-    try {
-        const response = await axios.put(`/item-stocks/${id}`, updatedData);
-        return response.data.data;
-    } catch (error) {
-        console.error('Error updating item stock:', error);
-        throw error.response?.data || error.message;
-    }
+  try {
+    const response = await axios.patch(`/item-stocks/${id}`, updatedData);
+    return response.data.data;
+  } catch (error) {
+    const backendError = error.response?.data;
+    console.error('❌ Error actualizando stock:', backendError || error.message);
+    console.error('Detalles:', backendError?.details);
+    throw backendError || error.message;
+  }
 }
+
 
 export async function deleteItemStock(id) {
     try {
