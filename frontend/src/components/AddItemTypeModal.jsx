@@ -5,13 +5,15 @@ import {
   Shirt, Coffee, GlassWater, Key, Table, Notebook, Gift, 
   GraduationCap, Baby, Backpack, Smartphone, FlaskConical 
 } from 'lucide-react';
-
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Select, MenuItem, InputLabel, FormControl,
   Checkbox, OutlinedInput, Chip, Box, ListSubheader
 } from '@mui/material';
+import { Autocomplete } from '@mui/material';
 import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
+import ITEM_TYPE_SUGGESTIONS from '../data/itemTypeSuggestions';
+
 
 const PRINTING_OPTIONS = ['sublimación', 'DTF', 'vinilo'];
 const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
@@ -158,16 +160,25 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
         {editingType ? 'Editar Tipo de Ítem' : 'Nuevo Tipo de Ítem'}
       </DialogTitle>
       <DialogContent dividers className="add-item-modal-content">
-        <TextField
-          label="Nombre"
-          name="name"
+        <Autocomplete
+          freeSolo
+          options={ITEM_TYPE_SUGGESTIONS}
           value={form.name}
-          onChange={handleChange}
-          required
-          fullWidth
-          margin="normal"
-          className="add-item-modal-field"
+          onInputChange={(event, newValue) => {
+            setForm(prev => ({ ...prev, name: newValue }));
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Nombre"
+              required
+              fullWidth
+              margin="normal"
+              className="add-item-modal-field"
+            />
+          )}
         />
+
         <TextField
           label="Descripción"
           name="description"
@@ -209,7 +220,7 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
                   {selectedIcon.label}
                 </Box>
               ) : 'Sin ícono';
-            }}
+            }}TextField 
           >
             {ICON_CATEGORIES.map((category) => [
               <ListSubheader key={category.name}>{category.name}</ListSubheader>,

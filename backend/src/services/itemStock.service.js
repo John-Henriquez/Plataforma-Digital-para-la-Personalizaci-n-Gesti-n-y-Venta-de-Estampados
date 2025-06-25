@@ -28,6 +28,18 @@ export const itemStockService = {
         return [null, "Este tipo de artículo requiere especificar talla"];
       }
 
+    const existing = await itemStockRepo.findOne({
+      where: {
+        itemType: { id: itemTypeId },
+        hexColor
+      },
+      relations: ["itemType"]
+    });
+
+    if (existing) {
+      return [null, "Ya existe un stock con ese nombre y color"];
+    }
+
       const urlRegex = /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif))$/i;
       const processedImages = Array.isArray(images)
         ? images.filter(url => url && urlRegex.test(url))
@@ -98,7 +110,6 @@ export const itemStockService = {
       return [null, "Item de inventario no encontrado"];
     }
 
-    // Validar campos actualizados
     if (updateData.quantity !== undefined && updateData.quantity < 0) {
       return [null, "La cantidad no puede ser negativa"];
     }
@@ -108,6 +119,24 @@ export const itemStockService = {
     if (updateData.size !== undefined && item.itemType.hasSizes && !updateData.size) {
       return [null, "Este tipo de artículo requiere especificar talla"];
     }
+
+    if (
+  (updateData.hexColor && updateData.hexColor !== item.hexColor) 
+    || (updateData.itemTypeId && updateData.itemTypeId !== item.itemType.id)
+  ) {
+  const duplicate = await repo.findOne({
+    where: {
+      id: Not(id), 
+      itemType: { id: updateData.itemTypeId || item.itemType.id },
+      hexColor: updateData.hexColor || item.hexColor
+    },
+    relations: ["itemType"]
+  });
+
+  if (duplicate) {
+    return [null, "Ya existe otro stock con ese nombre y color"];
+  }
+}
 
     const updatableFields = ["hexColor", "size", "quantity", "price", "images", "minStock", "isActive"];
     updatableFields.forEach(field => {
