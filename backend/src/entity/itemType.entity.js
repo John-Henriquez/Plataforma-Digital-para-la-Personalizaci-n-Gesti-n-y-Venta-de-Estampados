@@ -5,63 +5,74 @@ const ItemTypeSchema = new EntitySchema({
   name: "ItemType",
   tableName: "item_types",
   columns: {
-    id: {
-      type: "int",
-      primary: true,
-      generated: true,
+    id: { 
+      type: "int", 
+      primary: true, 
+      generated: true 
     },
-    name: {
+    name: { 
       type: "varchar",
-      length: 100,
-      unique: true,
-      nullable: false,
+      length: 100, 
+      unique: true, 
+      nullable: false 
     },
-    description: {
-      type: "text",
-      nullable: true,
+    description: { 
+      type: "text", 
+      nullable: true 
     },
     category: {
       type: "enum",
       enum: ["clothing", "object"],
       nullable: false,
     },
-    printingMethods: {
+    printingMethods: { 
       type: "simple-array",
-      nullable: true
+      nullable: true 
     },
-    sizesAvailable: {
-      type: "simple-array",
-      nullable: true
+    sizesAvailable: { 
+      type: "simple-array", 
+      nullable: true 
     },
-    isActive: {
-      type: "boolean",
-      default: true,
+    hasSizes: { 
+      type: "boolean", 
+      default: false, 
+      nullable: false 
     },
-    createdAt: {
-      type: "timestamp",
-      createDate: true,
-    },
-    updatedAt: {
-      type: "timestamp",
-      updateDate: true,
-    },
-    hasSizes: {  
-      type: "boolean",
-      default: false,
-      nullable: false
-    },
-    baseImageUrl: {
+    iconName: {  
       type: "varchar",
-      length: 255,
-      nullable: true,
+      length: 100,
+      nullable: true
     },
-
+    isActive: { 
+      type: "boolean", 
+      default: true 
+    },
+    createdAt: { 
+      type: "timestamp", 
+      createDate: true
+    },
+    updatedAt: { 
+      type: "timestamp", 
+      updateDate: true 
+    },
   },
   relations: {
     stocks: {
       type: "one-to-many",
       target: "ItemStock",
       inverseSide: "itemType",
+    },
+    createdBy: {
+      type: "many-to-one",
+      target: "User",
+      joinColumn: { name: "created_by" },
+      nullable: true,
+    },
+    updatedBy: {
+      type: "many-to-one",
+      target: "User",
+      joinColumn: { name: "updated_by" },
+      nullable: true,
     },
   },
 });

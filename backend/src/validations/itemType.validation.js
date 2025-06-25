@@ -52,7 +52,7 @@ const itemTypeSchema = Joi.object({
         .valid("S", "M", "L", "XL", "XXL")
         .messages({
           "any.only": "Las tallas deben ser 'S', 'M', 'L', 'XL' o 'XXL'",
-        })
+        }) 
     )
     .when("hasSizes", {
       is: true,

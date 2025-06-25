@@ -2,7 +2,7 @@ import { AppDataSource } from "../config/configDb.js";
 import ItemType from "../entity/itemType.entity.js";
 
 export const itemTypeService = {
-    async createItemType(itemTypeData) {
+    async createItemType(itemTypeData, userId) {
         try {
         const repo = AppDataSource.getRepository(ItemType);
 
@@ -21,7 +21,8 @@ export const itemTypeService = {
             hasSizes: itemTypeData.hasSizes,
             printingMethods: itemTypeData.printingMethods || [],
             sizesAvailable: itemTypeData.hasSizes ? itemTypeData.sizesAvailable : [],
-            baseImageUrl: itemTypeData.baseImageUrl || null
+            iconName: itemTypeData.iconName || null,
+            createdBy: { id: userId }
         });
 
         const savedItemType = await repo.save(newItemType);
@@ -64,7 +65,7 @@ export const itemTypeService = {
         return [null, "Error al obtener el tipo de ítem"];
     }
     },
-    async updateItemType(id, itemTypeData) {
+    async updateItemType(id, itemTypeData, userId) {
         try {
             const repo = AppDataSource.getRepository(ItemType);
             const itemType = await repo.findOne({ where: { id: parseInt(id), isActive: true } });
@@ -87,7 +88,8 @@ export const itemTypeService = {
                 hasSizes: itemTypeData.hasSizes !== undefined ? itemTypeData.hasSizes : itemType.hasSizes,
                 printingMethods: itemTypeData.printingMethods || itemType.printingMethods,
                 sizesAvailable: itemTypeData.hasSizes ? (itemTypeData.sizesAvailable || itemType.sizesAvailable) : [],
-                baseImageUrl: itemTypeData.baseImageUrl || itemType.baseImageUrl,
+                iconName: itemTypeData.iconName || itemType.iconName,
+                updatedBy: { id: userId }
             });
 
             const updatedItemType = await repo.save(itemType);

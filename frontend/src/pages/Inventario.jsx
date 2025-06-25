@@ -1,9 +1,13 @@
 import { useEffect, useState, useContext } from 'react';
+import React from 'react';
 import AddItemTypeModal from '../components/AddItemTypeModal.jsx';
+import AddItemStockModal from '../components/AddItemStockModal.jsx';
+
 import TrashModal from '../components/TrashModal.jsx';
 import useItemStock from '../hooks/itemStock/useItemStock.jsx';
 import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock.jsx';
 import useEditItemStock from '../hooks/itemStock/useEditItemStock.jsx';
+
 import { useItemTypes } from '../hooks/itemType/useItemType.jsx';
 import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType.jsx';
 import { useDeletedItemTypes } from '../hooks/itemType/useDeletedItemType.jsx';
@@ -23,6 +27,51 @@ import {
 } from '@mui/material';
 import { Navigate } from 'react-router-dom';
 import '../styles/pages/inventario.css';
+import {
+  Shirt, Coffee, GlassWater, Key, Table, Notebook, Gift,
+  GraduationCap, Baby, Backpack, Smartphone, FlaskConical
+} from 'lucide-react';
+
+const ICON_CATEGORIES = [
+  {
+    name: 'Ropa y Textiles',
+    icons: [
+      { label: 'Camiseta', value: 'shirt', Icon: Shirt },
+      { label: 'Gorra', value: 'cap', Icon: GraduationCap },
+      { label: 'Pijama', value: 'pijama', Icon: Baby },
+      { label: 'Bolso/Mochila', value: 'bag', Icon: Backpack },
+    ],
+  },
+  {
+    name: 'Accesorios',
+    icons: [
+      { label: 'Taza', value: 'mug', Icon: Coffee },
+      { label: 'Vaso', value: 'glass', Icon: GlassWater },
+      { label: 'Llave', value: 'key', Icon: Key },
+    ],
+  },
+  {
+    name: 'Hogar',
+    icons: [
+      { label: 'Mesa', value: 'table', Icon: Table },
+      { label: 'Smartphone', value: 'phone', Icon: Smartphone },
+    ],
+  },
+  {
+    name: 'Promocionales/Regalos',
+    icons: [
+      { label: 'Libreta', value: 'notebook', Icon: Notebook },
+      { label: 'Botella', value: 'bottle', Icon: FlaskConical },
+      { label: 'Regalo', value: 'gift', Icon: Gift },
+    ],
+  },
+];
+
+const iconMap = ICON_CATEGORIES.flatMap(c => c.icons).reduce((map, { value, Icon }) => {
+  map[value] = Icon;
+  return map;
+}, {});
+
 
 const Inventario = () => {
   const [openAddType, setOpenAddType] = useState(false);
@@ -41,12 +90,12 @@ const Inventario = () => {
   const [openTrash, setOpenTrash] = useState(false);
   const [trashedTypes, setTrashedTypes] = useState([]);
   
-  const {
-  deletedTypes,
-  fetchDeletedTypes,
-  loading: deletedLoading,
-  error: deletedError,
-} = useDeletedItemTypes();
+  const [openAddStock, setOpenAddStock] = useState(false);
+
+  const { deletedTypes, fetchDeletedTypes, 
+    loading: deletedLoading, 
+    error: deletedError,
+  } = useDeletedItemTypes();
 
 
   useEffect(() => {
@@ -206,16 +255,23 @@ const handleGoTrash = async () => {
               {itemTypes.map((type) => (
                 <li key={type.id} className="inventory-list-item">
                   <Box display="flex" alignItems="center" gap={2}>
-                    {type.baseImageUrl && (
-                      <img src={type.baseImageUrl} alt={type.name} width={24} />
-                    )}
-                    <span>
-                      {type.name} - {type.category}
-                      {type.sizesAvailable?.length > 0 && (
-                        <span> (Tallas: {type.sizesAvailable.join(', ')})</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {type.iconName && iconMap[type.iconName] && (
+                        <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                          {React.createElement(iconMap[type.iconName], { size: 20 })}
+                        </Box>
                       )}
-                      {!type.isActive && <span> (Inactivo)</span>}
+
+                      <strong>{type.name}</strong>
+                      <span style={{ marginLeft: 4, color: '#666' }}>({type.category})</span>
+                      {type.sizesAvailable?.length > 0 && (
+                        <span style={{ marginLeft: 6 }}>Tallas: {type.sizesAvailable.join(', ')}</span>
+                      )}
+                      {!type.isActive && (
+                        <span style={{ marginLeft: 6, color: 'red', fontWeight: 'bold' }}>(Inactivo)</span>
+                      )}
                     </span>
+
                   </Box>
                   <Box>
                     <Button
@@ -263,6 +319,7 @@ const handleGoTrash = async () => {
                     <Typography variant="h6">
                       {item.itemType?.name || 'Sin tipo'}
                     </Typography>
+                    
                     <Typography className="inventory-item-details">
                       Color: {item.color}{' '}
                       {item.hexColor && (
@@ -330,6 +387,12 @@ const handleGoTrash = async () => {
         trashedTypes={deletedTypes} 
         onRestore={handleRestoreType}
         onRefresh={fetchDeletedTypes}
+      />
+      <AddItemStockModal
+        open={openAddStock}
+        onClose={() => setOpenAddStock(false)}
+        onCreated={refetchStock}
+        itemTypes={itemTypes}
       />
     </Box>
     

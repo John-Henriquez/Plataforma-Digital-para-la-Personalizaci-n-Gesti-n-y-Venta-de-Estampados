@@ -5,11 +5,11 @@ import ItemStock from "../entity/itemStock.entity.js";
 export const itemStockService = {
     async createItemStock(itemData) {
     return await AppDataSource.transaction(async transactionalEntityManager => {
-      const { itemTypeId, color, hexColor, size, quantity, price, images, minStock } = itemData;
+      const { itemTypeId, hexColor, size, quantity, price, images, minStock } = itemData;
       const itemStockRepo = transactionalEntityManager.getRepository(ItemStock);
       const itemTypeRepo = transactionalEntityManager.getRepository(ItemType);
 
-      if (!itemTypeId || !color || !hexColor || quantity == null || price == null) {
+      if (!itemTypeId || !hexColor || quantity == null || price == null) {
         return [null, "Faltan campos obligatorios"];
       }
       if (quantity < 0 || price < 0) {
@@ -40,7 +40,6 @@ export const itemStockService = {
       const minStockValue = minStock || MIN_STOCK_DEFAULTS[itemType.category] || MIN_STOCK_DEFAULTS.default;
 
       const newItem = itemStockRepo.create({
-        color,
         hexColor,
         size: itemType.hasSizes ? size : null,
         quantity,
@@ -65,7 +64,6 @@ export const itemStockService = {
       const where = {};
       if (filters.id) where.id = filters.id;
       if (filters.itemTypeId) where.itemType = { id: filters.itemTypeId };
-      if (filters.color) where.color = filters.color;
       if (filters.publicOnly) where.isActive = true;
       if (filters.size !== undefined) {
         where.size = filters.size === "N/A" ? null : filters.size;
@@ -111,7 +109,7 @@ export const itemStockService = {
       return [null, "Este tipo de artículo requiere especificar talla"];
     }
 
-    const updatableFields = ["color", "hexColor", "size", "quantity", "price", "images", "minStock", "isActive"];
+    const updatableFields = ["hexColor", "size", "quantity", "price", "images", "minStock", "isActive"];
     updatableFields.forEach(field => {
       if (updateData[field] !== undefined) {
         item[field] = updateData[field];

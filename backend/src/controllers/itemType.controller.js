@@ -8,7 +8,6 @@ export const itemTypeController = {
             if (req.body.baseImage) delete req.body.baseImage;
             if (typeof req.body.hasSizes === "string") {
             req.body.hasSizes = JSON.parse(req.body.hasSizes); 
-            console.log("hasSizes parseado:", req.body.hasSizes);
             }
 
             if (req.file) {
@@ -46,7 +45,10 @@ export const itemTypeController = {
             }
             console.log("Validación Joi OK");
 
-            const [newItemType, serviceError] = await itemTypeService.createItemType(req.body);
+            const userId = req.user?.id;
+            if (!userId) return handleErrorClient(res, 401, "Usuario no autenticado");
+
+            const [newItemType, serviceError] = await itemTypeService.createItemType(req.body, userId);
             if (serviceError) {
             console.error("Error en itemTypeService.createItemType:", serviceError);
             return handleErrorClient(res, 400, serviceError);
@@ -54,6 +56,7 @@ export const itemTypeController = {
 
             console.log("Tipo de ítem creado exitosamente:", newItemType);
             handleSuccess(res, 201, "Tipo de ítem creado", newItemType);
+        
 
         } catch (error) {
             console.error("Error en createItemType catch:", error);
@@ -141,9 +144,11 @@ export const itemTypeController = {
                 console.error("Error de validación Joi:", error.details);
                 return handleErrorClient(res, 400, "Error de validación", error.details);
             }
-            console.log("Validación Joi OK");
+            
+            const userId = req.user?.id;
+            if (!userId) return handleErrorClient(res, 401, "Usuario no autenticado");
 
-            const [updatedItemType, serviceError] = await itemTypeService.updateItemType(id, req.body);
+            const [updatedItemType, serviceError] = await itemTypeService.updateItemType(id, req.body, userId);
             if (serviceError) {
                 console.error("Error en itemTypeService.updateItemType:", serviceError);
                 return handleErrorClient(res, 400, serviceError);

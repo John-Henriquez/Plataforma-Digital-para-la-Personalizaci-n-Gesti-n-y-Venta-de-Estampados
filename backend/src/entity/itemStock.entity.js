@@ -5,64 +5,69 @@ const ItemStockSchema = new EntitySchema({
   name: "ItemStock",
   tableName: "item_stocks",
   columns: {
-    id: {
-      type: "int",
-      primary: true,
-      generated: true,
+    id: { 
+      type: "int", 
+      primary: true, 
+      generated: true 
     },
-    color: {
-      type: "varchar",
-      length: 50,
-      nullable: false,
+    hexColor: { 
+      type: "varchar", 
+      length: 7, 
+      nullable: false 
+    }, 
+    size: { 
+      type: "varchar", 
+      length: 10, 
+      nullable: true
     },
-    hexColor: {
-      type: "varchar",
-      length: 7,
-      nullable: true,
-    },
-    size: {
-      type: "varchar",
-      length: 10,
-      nullable: true,
-    },
-    quantity: {
-      type: "int",
-      default: 0,
-      nullable: false,
+    quantity: { 
+      type: "int", 
+      default: 0, 
+      nullable: false 
     },
     price: {
       type: "int", 
-      nullable: false,
+      nullable: false 
     },
-    images: {
-      type: "jsonb",
-      nullable: true,
+    images: { 
+      type: "jsonb", 
+      nullable: true 
     },
-    minStock: {
-      type: "int",
-      default: 5,
+    minStock: { 
+      type: "int", 
+      default: 5 
     },
-    isActive: {
-      type: "boolean",
-      default: true,
+    isActive: { 
+      type: "boolean", 
+      default: true 
     },
-    createdAt: {
-      type: "timestamp",
-      createDate: true,
+    createdAt: { 
+      type: "timestamp", 
+      createDate: true 
     },
-    updatedAt: {
-      type: "timestamp",
-      updateDate: true,
+    updatedAt: { 
+      type: "timestamp", 
+      updateDate: true 
     },
   },
   relations: {
     itemType: {
       type: "many-to-one",
       target: "ItemType",
-      joinColumn: {
-        name: "item_type_id",
-      },
+      joinColumn: { name: "item_type_id" },
       nullable: false,
+    },
+    createdBy: {
+      type: "many-to-one",
+      target: "User",
+      joinColumn: { name: "created_by" },
+      nullable: true,
+    },
+    updatedBy: {
+      type: "many-to-one",
+      target: "User",
+      joinColumn: { name: "updated_by" },
+      nullable: true,
     },
   },
 });

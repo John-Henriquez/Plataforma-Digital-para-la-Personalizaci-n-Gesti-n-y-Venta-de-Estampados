@@ -128,8 +128,13 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
       }
 
       if (form.icon) {
-        formData.append('iconKey', form.icon);
+        formData.append('iconName', form.icon);
       }
+
+      console.log('Datos enviados al backend:');
+      for (let pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
 
       if (editingType) {
         await updateType(editingType.id, formData);

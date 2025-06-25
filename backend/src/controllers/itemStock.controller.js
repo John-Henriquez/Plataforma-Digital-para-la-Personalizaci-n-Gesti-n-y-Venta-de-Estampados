@@ -5,7 +5,7 @@ import { itemStockSchema, itemStockUpdateSchema } from "../validations/itemStock
 export const itemStockController = {
     async getItemStock(req, res) {
         try {
-            const { id, itemTypeId, color, size } = req.query;
+            const { id, itemTypeId, size } = req.query;
             
             if (itemTypeId && isNaN(parseInt(itemTypeId))) {
                 return handleErrorClient(res, 400, "itemTypeId debe ser un número");
@@ -14,7 +14,6 @@ export const itemStockController = {
             const [items, error] = await itemStockService.getItemStock({
                 id: id ? parseInt(id) : undefined,
                 itemTypeId,
-                color,
                 size
             });
             
@@ -29,7 +28,7 @@ export const itemStockController = {
 
     async getPublicStock(req, res) {
         try {
-            const { itemTypeId, color, size } = req.query;
+            const { itemTypeId, size } = req.query;
             if (itemTypeId && isNaN(parseInt(itemTypeId))) {
                 return handleErrorClient(res, 400, "itemTypeId debe ser un número");
             }
@@ -37,7 +36,6 @@ export const itemStockController = {
             const [items, error] = await itemStockService.getItemStock({
                 publicOnly: true,
                 itemTypeId: itemTypeId ? parseInt(itemTypeId) : undefined,
-                color,
                 size
             });
 

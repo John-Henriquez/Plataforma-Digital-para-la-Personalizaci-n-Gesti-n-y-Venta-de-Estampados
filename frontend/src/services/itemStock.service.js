@@ -12,6 +12,7 @@ export async function getItemStock() {
 
 export async function createItemStock(itemData) {
     try {
+        console.log('📦 Datos enviados al backend:', itemData);
         const response = await axios.post('/item-stocks', itemData);
         return response.data.data;
     } catch (error) {
