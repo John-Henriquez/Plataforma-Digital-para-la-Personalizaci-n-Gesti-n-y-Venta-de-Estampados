@@ -11,7 +11,8 @@ const useDeleteItemStock = () => {
       const updatedItem = await deleteItemStockService(id);
       return updatedItem;
     } catch (err) {
-      setError(err.message);
+      const errorMsg = err?.message || (typeof err === 'string' ? err : JSON.stringify(err));
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

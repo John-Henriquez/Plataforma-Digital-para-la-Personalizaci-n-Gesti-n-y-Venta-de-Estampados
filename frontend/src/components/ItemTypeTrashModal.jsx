@@ -20,7 +20,7 @@ import { useEmptyTrash } from '../hooks/itemType/useEmptyTrash.jsx';
 import { useForceDeleteItemType } from '../hooks/itemType/useForceDeleteItemType.jsx';
 import './../styles/components/trashModal.css';
 
-const TrashModal = ({ open, onClose, trashedTypes, onRestore, onRefresh }) => {
+const ItemTypeTrashModal = ({ open, onClose, trashedTypes, onRestore, onRefresh }) => {
   const { empty, loading: emptyingTrash } = useEmptyTrash();
   const { forceDelete, loading: deleting } = useForceDeleteItemType();
 
@@ -144,4 +144,4 @@ const handleForceDelete = async (id) => {
   );
 };
 
-export default TrashModal;
+export default ItemTypeTrashModal;

@@ -43,3 +43,43 @@ export async function deleteItemStock(id) {
         throw error.response?.data || error.message;
     }
 }
+
+export async function getDeletedItemStock() {
+  try {
+    const { data } = await axios.get('/item-stocks', { params: { isActive: false } });
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching deleted item stock:', error);
+    return [];
+  }
+}
+
+export async function restoreItemStock(id) {
+  try {
+    const { data } = await axios.patch(`/item-stocks/restore/${id}`);
+    return data.data;
+  } catch (error) {
+    console.error('Error restoring item stock:', error);
+    throw error.response?.data || error.message;
+  }
+}
+
+export async function emptyDeletedItemStock() {
+  try {
+    const { data } = await axios.delete('/item-stocks/trash');
+    return data;
+  } catch (error) {
+    console.error('Error emptying deleted item stock:', error);
+    throw error.response?.data || error.message;
+  }
+}
+
+export async function forceDeleteItemStock(id) {
+  try {
+    const response = await axios.delete(`/item-stocks/force-delete/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error force deleting item stock:', error);
+    throw error.response?.data || error.message;
+  }
+}

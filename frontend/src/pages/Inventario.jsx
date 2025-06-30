@@ -11,7 +11,8 @@ import {
 
 import AddItemTypeModal from '../components/AddItemTypeModal.jsx';
 import AddItemStockModal from '../components/AddItemStockModal.jsx';
-import TrashModal from '../components/TrashModal.jsx';
+import ItemTypeTrash from '../components/ItemTypeTrashModal.jsx';
+import ItemStockTrash from '../components/ItemStockTrashModal.jsx';
 
 import useItemStock from '../hooks/itemStock/useItemStock.jsx';
 import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock.jsx';
@@ -20,6 +21,9 @@ import { useItemTypes } from '../hooks/itemType/useItemType.jsx';
 import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType.jsx';
 import { useDeletedItemTypes } from '../hooks/itemType/useDeletedItemType.jsx';
 import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType.jsx';
+import { useRestoreItemStock } from '../hooks/itemStock/useRestoreItemStock.jsx';
+import { useDeletedItemStock } from '../hooks/itemStock/useDeletedItemStock.jsx';
+
 
 import { AuthContext } from '../context/AuthContext.jsx';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
@@ -72,6 +76,9 @@ const Inventario = () => {
   const [openAddStock, setOpenAddStock] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
   const [openTrash, setOpenTrash] = useState(false);
+  const [openStockTrash, setOpenStockTrash] = useState(false); 
+
+  const { deletedStock, fetchDeletedStock } = useDeletedItemStock();
 
   const { isAuthenticated, user } = useContext(AuthContext);
 
@@ -97,6 +104,8 @@ const Inventario = () => {
   const { deleteItemStock } = useDeleteItemStock();
   const { removeType  } = useDeleteItemType();
   const { restoreType } = useRestoreItemType();
+  const { restore } = useRestoreItemStock();
+
 
   useEffect(() => {
     fetchTypes();
@@ -144,11 +153,35 @@ const Inventario = () => {
     }
   };
 
-  const handleRestoreType = async (id) => {
-    try {
-      await restoreType(id);
-      showSuccessAlert('Restaurado', 'El tipo de ítem fue restaurado correctamente');
-      fetchTypes();
+const handleRestoreType = async (id) => {
+  try {
+    await restoreType(id);
+    showSuccessAlert('Restaurado', 'El tipo de ítem fue restaurado correctamente');
+
+    await Promise.all([
+      fetchTypes(),          
+      fetchDeletedTypes(),  
+    ]);
+
+    setOpenTrash(false); 
+  } catch (error) {
+    showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
+  }
+};
+
+const handleRestoreStock = async (id) => {
+  try {
+    await restore(id);
+    showSuccessAlert('Restaurado', 'El stock fue restaurado correctamente');
+
+    // Asegura sincronización de datos relacionados
+    await Promise.all([
+      refetchStock(),       // actualiza el listado visible
+      fetchDeletedStock(),  // actualiza la papelera
+      fetchTypes(),         // opcional: asegura que itemType esté disponible
+    ]);
+
+      setOpenStockTrash(false);
     } catch (error) {
       showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
     }
@@ -164,6 +197,19 @@ const Inventario = () => {
   };
   const handleCloseTrash = () => {
     setOpenTrash(false);
+  };
+
+  const handleOpenStockTrashModal = async () => {
+    try {
+      await fetchDeletedStock();  
+      setOpenStockTrash(true);
+    } catch (err) {
+      console.error('[Inventario] Error al obtener stock eliminados:', err);
+    }
+  };
+
+  const handleCloseStockTrash = () => {
+    setOpenStockTrash(false);
   };
 
 
@@ -296,6 +342,14 @@ const Inventario = () => {
               >
                 Nuevo Stock
               </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                className="inventory-button inventory-button--outlined"
+                onClick={handleOpenStockTrashModal}
+              >
+                Papelera Stock
+              </Button>
             </Box>
             <Typography variant="h5">
               Stock Disponible ({itemStock.length})
@@ -372,12 +426,23 @@ const Inventario = () => {
         editingType={editingType}
       />
 
-      <TrashModal 
+      <ItemTypeTrash 
         open={openTrash}
         onClose={handleCloseTrash}
         trashedTypes={deletedTypes} 
         onRestore={handleRestoreType}
         onRefresh={fetchDeletedTypes}
+      />
+
+      <ItemStockTrash
+        open={openStockTrash}
+        onClose={handleCloseStockTrash}
+        trashedItems={Array.isArray(deletedStock) ? deletedStock : []}   
+        onRestore={handleRestoreStock}
+        onRefresh={() => {
+          fetchDeletedStock();   
+          refetchStock();        
+        }}
       />
       <AddItemStockModal
         open={openAddStock}

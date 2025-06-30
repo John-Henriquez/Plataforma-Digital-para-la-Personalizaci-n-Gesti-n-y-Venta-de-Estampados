@@ -220,7 +220,7 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
                   {selectedIcon.label}
                 </Box>
               ) : 'Sin ícono';
-            }}TextField 
+            }}
           >
             {ICON_CATEGORIES.map((category) => [
               <ListSubheader key={category.name}>{category.name}</ListSubheader>,

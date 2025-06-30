@@ -5,7 +5,7 @@ import { itemStockSchema, itemStockUpdateSchema } from "../validations/itemStock
 export const itemStockController = {
     async getItemStock(req, res) {
         try {
-            const { id, itemTypeId, size } = req.query;
+            const { id, itemTypeId, size, isActive } = req.query;
             
             if (itemTypeId && isNaN(parseInt(itemTypeId))) {
                 return handleErrorClient(res, 400, "itemTypeId debe ser un número");
@@ -14,7 +14,8 @@ export const itemStockController = {
             const [items, error] = await itemStockService.getItemStock({
                 id: id ? parseInt(id) : undefined,
                 itemTypeId,
-                size
+                size,
+                isActive: isActive === "true" ? true : (isActive === "false" ? false : undefined)
             });
             
             if (error) return handleErrorClient(res, 404, error);
@@ -104,6 +105,7 @@ export const itemStockController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+    
     async emptyTrash(req, res) {
     try {
         const [deletedCount, error] = await itemStockService.emptyTrash();
@@ -132,4 +134,21 @@ export const itemStockController = {
         }
     },
 
+    async forceDeleteItemStock(req, res) {
+    try {
+        const { id } = req.params;
+
+        if (!id || isNaN(parseInt(id))) {
+        return handleErrorClient(res, 400, "ID debe ser un número");
+        }
+
+        const [result, error] = await itemStockService.forceDeleteItemStock(parseInt(id));
+
+        if (error) return handleErrorClient(res, 404, error);
+
+        handleSuccess(res, 200, result.message, { id: result.id });
+        } catch (error) {
+            handleErrorServer(res, 500, error.message);
+        }
+    },
 }

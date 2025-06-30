@@ -16,5 +16,7 @@ router.delete("/:id", isAdmin, itemStockController.deleteItemStock);
 
 router.delete("/trash", isAdmin, itemStockController.emptyTrash);
 router.patch("/restore/:id", isAdmin, itemStockController.restoreItemStock);
+router.delete("/force-delete/:id", isAdmin, itemStockController.forceDeleteItemStock);
+
 
 export default router;

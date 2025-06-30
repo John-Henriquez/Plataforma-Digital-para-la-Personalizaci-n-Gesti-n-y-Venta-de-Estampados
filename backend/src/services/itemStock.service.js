@@ -84,15 +84,19 @@ export const itemStockService = {
   async getItemStock(filters = {}) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
-      
       const where = {};
+      
       if (filters.id) where.id = filters.id;
       if (filters.itemTypeId) where.itemType = { id: filters.itemTypeId };
-      if (filters.publicOnly !== false) where.isActive = true;
       if (filters.size !== undefined) {
         where.size = filters.size === "N/A" ? null : filters.size;
       }
 
+      if (filters.isActive !== undefined) {
+        where.isActive = filters.isActive;
+      } else if (filters.publicOnly !== false) {
+        where.isActive = true;
+      }
       const items = await repo.find({
         where,
         relations: ["itemType"],
@@ -248,5 +252,23 @@ export const itemStockService = {
       return [null, "Error al restaurar el item"];
     }
   },
+  
+  async forceDeleteItemStock(id) {
+    try {
+      const repo = AppDataSource.getRepository(ItemStock);
+      const item = await repo.findOne({ where: { id } });
+
+      if (!item) {
+        return [null, "Item de inventario no encontrado"];
+      }
+
+      await repo.remove(item);
+
+      return [{ id: item.id, message: "Item eliminado permanentemente" }, null];
+    } catch (error) {
+      console.error("Error en forceDeleteItemStock:", error);
+      return [null, "Error al eliminar permanentemente el item"];
+    }
+  }
 
 }
