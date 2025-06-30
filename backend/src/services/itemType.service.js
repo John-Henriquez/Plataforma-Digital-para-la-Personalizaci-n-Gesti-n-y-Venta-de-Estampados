@@ -1,5 +1,6 @@
 import { AppDataSource } from "../config/configDb.js";
 import ItemType from "../entity/itemType.entity.js";
+import ItemStock from "../entity/itemStock.entity.js";
 
 export const itemTypeService = {
     async createItemType(itemTypeData, userId) {
@@ -101,40 +102,79 @@ export const itemTypeService = {
     },
     async deleteItemType(id) {
         try {
-            const repo = AppDataSource.getRepository(ItemType);
-            const itemType = await repo.findOne({ where: { id: parseInt(id), isActive: true } });
+            const itemTypeRepo = AppDataSource.getRepository(ItemType);
+            const itemStockRepo = AppDataSource.getRepository(ItemStock);
+
+            const itemType = await itemTypeRepo.findOne({
+                where: { id: parseInt(id), isActive: true },
+                relations: ["stocks"],
+            });
 
             if (!itemType) {
                 return [null, "Tipo de ítem no encontrado o ya está desactivado"];
             }
 
             itemType.isActive = false;
-            await repo.save(itemType);
+            await itemTypeRepo.save(itemType);
 
-            return [{ id: parseInt(id) }, null];
+            const affectedStocks = [];
+
+            for (const stock of itemType.stocks) {
+                if (stock.isActive) {
+                    stock.isActive = false;
+                    stock.deletedAt = new Date();
+                    stock.deactivatedByItemType = true;
+                    affectedStocks.push(stock);
+                }
+            }
+
+            if (affectedStocks.length > 0) {
+                await itemStockRepo.save(affectedStocks);
+            }
+
+            return [{ id: parseInt(id), affectedStocks: affectedStocks.length }, null];
         } catch (error) {
             console.error("Error en deleteItemType:", error);
             return [null, "Error al desactivar el tipo de ítem"];
         }
     },
+
     async restoreItemType(id) {
         try {
-            const repo = AppDataSource.getRepository(ItemType);
-            const itemType = await repo.findOne({ where: { id: parseInt(id), isActive: false } });
+            const itemTypeRepo = AppDataSource.getRepository(ItemType);
+            const itemStockRepo = AppDataSource.getRepository(ItemStock);
+
+            const itemType = await itemTypeRepo.findOne({
+            where: { id: parseInt(id), isActive: false },
+            relations: ["stocks"],
+            });
 
             if (!itemType) {
-                return [null, "Tipo de ítem no encontrado o ya está activo"];
+            return [null, "Tipo de ítem no encontrado o ya está activo"];
             }
 
             itemType.isActive = true;
-            const restoredItemType = await repo.save(itemType);
+            await itemTypeRepo.save(itemType);
 
-            return [restoredItemType, null];
+            const stocksToRestore = itemType.stocks.filter(s => s.deactivatedByItemType);
+
+            for (const stock of stocksToRestore) {
+            stock.isActive = true;
+            stock.deletedAt = null;
+            stock.deactivatedByItemType = false;
+            }
+
+            if (stocksToRestore.length > 0) {
+            await itemStockRepo.save(stocksToRestore);
+            }
+
+            return [{ restoredItemTypeId: id, restoredStocks: stocksToRestore.length }, null];
         } catch (error) {
             console.error("Error en restoreItemType:", error);
             return [null, "Error al restaurar el tipo de ítem"];
         }
     },
+
     async getDeletedItemTypes() {
         try {
             const repo = AppDataSource.getRepository(ItemType);
@@ -148,17 +188,28 @@ export const itemTypeService = {
             return [null, "Error al obtener ítems eliminados"];
         }
     },
+
     async forceDeleteItemType(id) {
         try {
-            const repo = AppDataSource.getRepository(ItemType);
-            const itemType = await repo.findOne({ where: { id: parseInt(id) } });
+            const itemTypeRepo = AppDataSource.getRepository(ItemType);
+            const itemStockRepo = AppDataSource.getRepository(ItemStock);
+
+            const itemType = await itemTypeRepo.findOne({
+            where: { id: parseInt(id) },
+            relations: ["stocks"],
+            });
 
             if (!itemType) {
             return [null, "Tipo de ítem no encontrado"];
             }
 
-            await repo.remove(itemType); 
-            return [{ id: parseInt(id) }, null];
+            if (itemType.stocks.length > 0) {
+            await itemStockRepo.remove(itemType.stocks);
+            }
+
+            await itemTypeRepo.remove(itemType);
+
+            return [{ id: parseInt(id), deletedStocks: itemType.stocks.length }, null];
         } catch (error) {
             console.error("Error en forceDeleteItemType:", error);
             return [null, "Error al eliminar permanentemente el tipo de ítem"];

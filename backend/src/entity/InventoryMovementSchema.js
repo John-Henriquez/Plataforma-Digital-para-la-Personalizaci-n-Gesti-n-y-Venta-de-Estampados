@@ -33,7 +33,8 @@ const InventoryMovementSchema = new EntitySchema({
       type: "many-to-one",
       target: "ItemStock",
       joinColumn: { name: "item_stock_id" },
-      nullable: false,
+      nullable: true,
+      onDelete: "SET NULL",
     },
     createdBy: {
       type: "many-to-one",

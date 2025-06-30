@@ -12,11 +12,12 @@ const useItemStock = () => {
     const [itemStock, setItemStock] = useState([]);
     const [filters, setFilters] = useState(initialFilters);
     const [loading, setLoading] = useState(true);
-    const [error] = useState(null);
+    const [error, setError] = useState(null);
 
   const fetchInventoryData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [types, stock] = await Promise.all([
         getItemTypes(),
         getItemStock(filters)

@@ -52,7 +52,12 @@ const ItemStockSchema = new EntitySchema({
       deletedAt: {
         type: "timestamp",
         nullable: true,
-    }
+    },
+    deactivatedByItemType: {
+      type: "boolean",
+      default: false,
+    },
+
   },
   relations: {
     itemType: {

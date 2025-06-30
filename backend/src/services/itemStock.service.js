@@ -233,13 +233,20 @@ export const itemStockService = {
   async restoreItemStock(id) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
-      const item = await repo.findOne({ where: { id } });
+      const item = await repo.findOne({ 
+        where: { id }, 
+        relations: ["itemType"] 
+      });
 
       if (!item) {
         return [null, "Item de inventario no encontrado"];
       }
       if (item.isActive) {
         return [null, "El item ya está activo"];
+      }
+
+      if (!item.itemType?.isActive) {
+        return [null, "No se puede restaurar un stock cuyo tipo de ítem está desactivado"];
       }
 
       item.isActive = true;

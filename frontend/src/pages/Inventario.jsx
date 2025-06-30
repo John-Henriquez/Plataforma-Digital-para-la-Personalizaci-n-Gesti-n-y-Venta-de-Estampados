@@ -144,7 +144,10 @@ const Inventario = () => {
       try {
         await removeType(id);
         showSuccessAlert('Eliminado', 'El tipo de ítem fue eliminado correctamente');
-        fetchTypes();
+        await Promise.all([
+          fetchTypes(),
+          refetchStock(), 
+        ]);
       } catch (error) {
         console.error(error);
         const message = error?.message || 'Ocurrió un error inesperado';
@@ -160,7 +163,8 @@ const handleRestoreType = async (id) => {
 
     await Promise.all([
       fetchTypes(),          
-      fetchDeletedTypes(),  
+      fetchDeletedTypes(), 
+      refetchStock(),  
     ]);
 
     setOpenTrash(false); 
@@ -171,21 +175,30 @@ const handleRestoreType = async (id) => {
 
 const handleRestoreStock = async (id) => {
   try {
+    const stockItem = deletedStock.find(item => item.id === id);
+    if (!stockItem || !stockItem.itemType?.isActive) {
+      showErrorAlert(
+        'No se puede restaurar',
+        'No puedes restaurar este stock porque su tipo de ítem aún está inactivo.'
+      );
+      return;
+    }
+
     await restore(id);
     showSuccessAlert('Restaurado', 'El stock fue restaurado correctamente');
 
-    // Asegura sincronización de datos relacionados
     await Promise.all([
-      refetchStock(),       // actualiza el listado visible
-      fetchDeletedStock(),  // actualiza la papelera
-      fetchTypes(),         // opcional: asegura que itemType esté disponible
+      refetchStock(),
+      fetchDeletedStock(),
+      fetchTypes(),
     ]);
 
-      setOpenStockTrash(false);
-    } catch (error) {
-      showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
-    }
-  };
+    setOpenStockTrash(false);
+  } catch (error) {
+    showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
+  }
+};
+
 
   const handleOpenTrashModal = async () => {
     try {

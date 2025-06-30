@@ -57,6 +57,7 @@ const ItemStockTrashModal = ({ open, onClose, trashedItems, onRefresh }) => {
     try {
       await restore(id);
       showSuccessAlert('Restaurado', 'El stock ha sido restaurado.');
+      
       onRefresh();
       onClose();
     } catch (err) {
