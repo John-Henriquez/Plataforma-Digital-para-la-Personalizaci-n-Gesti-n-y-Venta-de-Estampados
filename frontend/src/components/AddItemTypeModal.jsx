@@ -13,7 +13,7 @@ import {
 import { Autocomplete } from '@mui/material';
 import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
 import ITEM_TYPE_SUGGESTIONS from '../data/itemTypeSuggestions';
-
+import '../styles/components/modal.css';
 
 const PRINTING_OPTIONS = ['sublimación', 'DTF', 'vinilo'];
 const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'];
@@ -155,16 +155,16 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" className="add-item-modal">
-      <DialogTitle className="add-item-modal-title">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" className="modal">
+      <DialogTitle className="modal-title">
         {editingType ? 'Editar Tipo de Ítem' : 'Nuevo Tipo de Ítem'}
       </DialogTitle>
-      <DialogContent dividers className="add-item-modal-content">
+      <DialogContent dividers className="modal-content">
         <Autocomplete
           freeSolo
           options={ITEM_TYPE_SUGGESTIONS}
           value={form.name}
-          onInputChange={(event, newValue) => {
+          onInputChange={(e, newValue) => {
             setForm(prev => ({ ...prev, name: newValue }));
           }}
           renderInput={(params) => (
@@ -174,7 +174,7 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
               required
               fullWidth
               margin="normal"
-              className="add-item-modal-field"
+              className="modal-field"
             />
           )}
         />
@@ -188,9 +188,9 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
           rows={3}
           fullWidth
           margin="normal"
-          className="add-item-modal-field"
+          className="modal-field"
         />
-        <FormControl fullWidth required margin="normal" className="add-item-modal-field">
+        <FormControl fullWidth required margin="normal" className="modal-field">
           <InputLabel>Categoría</InputLabel>
           <Select
             name="category"
@@ -202,7 +202,7 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
             <MenuItem value="object">Objeto</MenuItem>
           </Select>
         </FormControl>
-        <FormControl fullWidth margin="normal" className="add-item-modal-field">
+        <FormControl fullWidth margin="normal" className="modal-field">
           <InputLabel>Ícono</InputLabel>
           <Select
             name="icon"
@@ -233,7 +233,8 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
             ])}
           </Select>
         </FormControl>
-        <FormControl fullWidth required margin="normal" className="add-item-modal-field">
+
+        <FormControl fullWidth required margin="normal" className="modal-field">
           <InputLabel>Métodos de Impresión</InputLabel>
           <Select
             multiple
@@ -257,8 +258,9 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
             ))}
           </Select>
         </FormControl>
+
         {form.hasSizes && (
-          <FormControl fullWidth required margin="normal" className="add-item-modal-field">
+          <FormControl fullWidth required margin="normal" className="modal-field">
             <InputLabel>Tallas disponibles</InputLabel>
             <Select
               multiple
@@ -284,18 +286,20 @@ const AddItemTypeModal = ({ open, onClose, onCreated, editingType }) => {
           </FormControl>
         )}
       </DialogContent>
-      <DialogActions className="add-item-modal-actions">
+      
+      <DialogActions className="modal-actions">
         <Button
           onClick={onClose}
-          className="add-item-modal-button add-item-modal-button--cancel"
+          className="modal-button modal-button--cancel"
         >
           Cancelar
         </Button>
+
         <Button
           onClick={handleSubmit}
           variant="contained"
           disabled={loading || !form.name || !form.category || !form.printingMethods.length}
-          className="add-item-modal-button add-item-modal-button--primary"
+          className="modal-button modal-button--primary"
         >
           {loading ? (editingType ? 'Actualizando...' : 'Creando...') : (editingType ? 'Actualizar' : 'Crear')}
         </Button>

@@ -4,71 +4,84 @@ import {
   Button, TextField, Select, MenuItem, InputLabel,
   FormControl, Box
 } from '@mui/material';
+import { Autocomplete } from '@mui/material';
 import { showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
 import { useCreateItemStock } from '../hooks/itemStock/useCreateItemStock.jsx';
 import useEditItemStock from '../hooks/itemStock/useEditItemStock.jsx';
-import '../styles/components/addItemStockModal.css';
+import { COLOR_DICTIONARY } from '../data/colorDictionary';
+import '../styles/components/modal.css';
+
+const DEFAULT_FORM = {
+  itemTypeId: '',
+  hexColor: '#000000',
+  size: '',
+  quantity: '',
+  price: '',
+  minStock: '',
+  images: ['']
+};
 
 const AddItemStockModal = ({ open, onClose, onCreated, itemTypes, editingStock }) => {
-  const [form, setForm] = useState({
-    itemTypeId: '',
-    hexColor: '#000000',
-    size: '',
-    quantity: '',
-    price: '',
-    minStock: '',
-    images: ['']
-  });
+  const [form, setForm] = useState(DEFAULT_FORM);
+  const [selectedType, setSelectedType] = useState(null);
 
-const [selectedType, setSelectedType] = useState(null);
-const { addStock, loading } = useCreateItemStock();
-const { editItemStock } = useEditItemStock();
-
+  const { addStock, loading } = useCreateItemStock();
+  const { editItemStock } = useEditItemStock();
 
   useEffect(() => {
-    if (form.itemTypeId) {
-      const type = itemTypes.find(t => t.id === form.itemTypeId);
-      setSelectedType(type);
+    if (editingStock) {
+      const matchingType = itemTypes.find(t => t.id === editingStock.itemTypeId);
+      setForm({
+        itemTypeId: matchingType ? editingStock.itemTypeId : '',
+        hexColor: editingStock.hexColor || '#000000',
+        size: editingStock.size || '',
+        quantity: editingStock.quantity.toString(),
+        price: editingStock.price.toString(),
+        minStock: editingStock.minStock?.toString() || '',
+        images: editingStock.images?.length ? editingStock.images : [''],
+      });
     } else {
-      setSelectedType(null);
+      setForm(DEFAULT_FORM);
     }
+  }, [editingStock, itemTypes]);
+
+  useEffect(() => {
+    setSelectedType(itemTypes.find(type => type.id === form.itemTypeId) || null);
   }, [form.itemTypeId, itemTypes]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setForm(prev => ({ 
+      ...prev,
+      [name]: type === 'number' || ['quantity', 'price', 'minStock'].includes(name)
+        ? value 
+        : value
+    }));
   };
+
 const handleSubmit = async () => {
   try {
-    // Filtrar imágenes no vacías
     const filteredImages = form.images.filter(url => url.trim() !== '');
-
-    // Armar payload básico
+    
     const payload = {
       hexColor: form.hexColor,
       quantity: parseInt(form.quantity, 10),
       price: parseInt(form.price, 10),
       minStock: parseInt(form.minStock, 10),
+      ...(filteredImages.length > 0 && { images: filteredImages }),
+      ...(selectedType?.hasSizes && form.size && { size: form.size }),
+      ...(!editingStock && { itemTypeId: form.itemTypeId })
     };
     
-    if (!editingStock) {
-      payload.itemTypeId = form.itemTypeId;
-    }
+    console.log("🧪 Payload enviado al backend:", payload);
 
-    // Incluir imágenes solo si hay
     if (filteredImages.length > 0) {
       payload.images = filteredImages;
     }
-
-    // Incluir talla solo si corresponde
     if (selectedType?.hasSizes && form.size) {
       payload.size = form.size;
     }
 
-    // Mostrar payload antes de enviar
-    console.log("🧪 Payload enviado al backend:", payload);
-
-    // Editar o agregar stock
     if (editingStock) {
       await editItemStock(editingStock.id, payload);
       showSuccessAlert('¡Stock actualizado!', 'El ítem fue actualizado correctamente.');
@@ -83,84 +96,64 @@ const handleSubmit = async () => {
   } catch (error) {
     const backendError = error.response?.data;
     console.error('❌ Error del backend:', backendError || error.message);
-    
     if (backendError?.details) {
       console.error('🧩 Detalles de validación:', backendError.details);
     }
-
     showErrorAlert('Error', backendError?.message || 'No se pudo guardar el stock.');
   }
 };
 
-
-  useEffect(() => {
-  if (editingStock) {
-    const matchingType = itemTypes.find(t => t.id === editingStock.itemTypeId);
-    setForm({
-      itemTypeId: matchingType ? editingStock.itemTypeId : '',
-      hexColor: editingStock.hexColor || '#000000',
-      size: editingStock.size || '',
-      quantity: editingStock.quantity.toString(),
-      price: editingStock.price.toString(),
-      minStock: editingStock.minStock?.toString() || '',
-      images: editingStock.images?.length ? editingStock.images : [''],
-    });
-  } else {
-    setForm({
-      itemTypeId: '',
-      hexColor: '#000000',
-      size: '',
-      quantity: '',
-      price: '',
-      minStock: '',
-      images: ['']
-    });
-  }
-}, [editingStock, itemTypes]);
-
-
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle className='dialog-title'>Nuevo Stock</DialogTitle>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" className="modal">
+      <DialogTitle className='modal-title'>
+        {editingStock ? 'Editar Stock' : 'Nuevo Stock'}
+      </DialogTitle>
 
-      <DialogContent dividers className='dialog-content'>
-        <FormControl fullWidth margin="normal">
-            {Array.isArray(itemTypes) && itemTypes.length > 0 ? (
+      <DialogContent dividers className='modal-content'>
+        {/* Tipo de item*/}
+        <FormControl fullWidth margin="normal" className="modal-field">
+          {itemTypes.length > 0 ? (
             <>
-            <InputLabel>Tipo de Ítem</InputLabel>
-            <Select
-            name="itemTypeId"
-            value={form.itemTypeId}
-            onChange={(e) => handleChange({
-                target: { name: 'itemTypeId', value: Number(e.target.value) }
-            })}
-            required
-            >
-            {itemTypes.map((type) => (
-                <MenuItem key={type.id} value={type.id}>
-                {type.name}
-                </MenuItem>
-            ))}
-            </Select>
+              <InputLabel>Tipo de Ítem</InputLabel>
+              <Select
+                name="itemTypeId"
+                value={form.itemTypeId}
+                onChange={(e) => 
+                  handleChange({
+                    target: { 
+                      name: 'itemTypeId', 
+                      value: Number(e.target.value),
+                      type: 'number'
+                    }
+                  })
+                }
+                required
+              >
+                {itemTypes.map((type) => (
+                  <MenuItem key={type.id} value={type.id}>
+                  {type.name}
+                  </MenuItem>
+                ))}
+              </Select>
             </>
-        ) : (
-            <Box className="no-types-message">No hay tipos disponibles</Box>
-        )}
+          ) : (
+            <Box className="modal-no-types-message">No hay tipos disponibles</Box>
+          )}
         </FormControl>
-
-        <Box className="color-picker">
-          <label>Color (hex)</label>
-          <input
-            type="color"
-            name="hexColor"
-            value={form.hexColor}
-            onChange={handleChange}
-            className="color-input"
-          />
-        </Box>
-
+        {/* Color */}
+        <Autocomplete
+          options={COLOR_DICTIONARY}
+          getOptionLabel={(option) => option.name}
+          value={COLOR_DICTIONARY.find(c => c.hex === form.hexColor) || null}
+          onChange={(e, newValue) => newValue && setForm(prev => ({ ...prev, hexColor: newValue.hex }))}
+          renderInput={(params) => (
+            <TextField {...params} label="Color" fullWidth margin="normal" className="modal-field" />
+          )}
+          isOptionEqualToValue={(option, value) => option.hex === value.hex}
+        />
+        {/* Talla */}
         {selectedType?.hasSizes && (
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" className="modal-field">
             <InputLabel>Talla</InputLabel>
             <Select
               name="size"
@@ -174,7 +167,7 @@ const handleSubmit = async () => {
             </Select>
           </FormControl>
         )}
-
+        {/* Campos de cantidad, precio y stock mínimo */}
         <TextField
           label="Cantidad"
           name="quantity"
@@ -184,6 +177,7 @@ const handleSubmit = async () => {
           fullWidth
           margin="normal"
           required
+          className="modal-field"
         />
 
         <TextField
@@ -195,6 +189,7 @@ const handleSubmit = async () => {
           fullWidth
           margin="normal"
           required
+          className="modal-field"
         />
 
         <TextField
@@ -206,6 +201,7 @@ const handleSubmit = async () => {
           fullWidth
           margin="normal"
           required
+          className="modal-field"
         />
 
         <TextField
@@ -220,14 +216,15 @@ const handleSubmit = async () => {
           }
           fullWidth
           margin="normal"
+          className="modal-field"
         />
       </DialogContent>
-      <DialogActions className='dialog-actions'>
-        <Button onClick={onClose}>Cancelar</Button>
+
+      <DialogActions className='modal-actions'>
+        <Button onClick={onClose} className="modal-button modal-button--cancel">Cancelar</Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          className="button-primary"
           disabled={
             loading ||
             !form.itemTypeId ||
@@ -235,7 +232,8 @@ const handleSubmit = async () => {
             !form.quantity ||
             !form.price ||
             !form.minStock
-          }
+        }
+          className="modal-button modal-button--primary"
         >
           {loading ? 'Guardando...' : 'Guardar'}
         </Button>

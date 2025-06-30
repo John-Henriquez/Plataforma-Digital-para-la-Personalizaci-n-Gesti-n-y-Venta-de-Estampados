@@ -1,36 +1,29 @@
-import { useEffect, useState, useContext } from 'react';
-import React from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import {
+  Box, Button, Grid, TextField, Paper, Typography,
+  CircularProgress, Alert,
+} from '@mui/material';
+import { Navigate } from 'react-router-dom';
+import {
+  Shirt, Coffee, GlassWater, Key, Table, Notebook, Gift,
+  GraduationCap, Baby, Backpack, Smartphone, FlaskConical
+} from 'lucide-react';
+
 import AddItemTypeModal from '../components/AddItemTypeModal.jsx';
 import AddItemStockModal from '../components/AddItemStockModal.jsx';
-
 import TrashModal from '../components/TrashModal.jsx';
+
 import useItemStock from '../hooks/itemStock/useItemStock.jsx';
 import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock.jsx';
-import useEditItemStock from '../hooks/itemStock/useEditItemStock.jsx';
 
 import { useItemTypes } from '../hooks/itemType/useItemType.jsx';
 import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType.jsx';
 import { useDeletedItemTypes } from '../hooks/itemType/useDeletedItemType.jsx';
 import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType.jsx';
+
 import { AuthContext } from '../context/AuthContext.jsx';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
-import {
-  Button,
-  Grid,
-  TextField,
-  Paper,
-  Typography,
-  CircularProgress,
-  Alert,
-  Box,
-
-} from '@mui/material';
-import { Navigate } from 'react-router-dom';
 import '../styles/pages/inventario.css';
-import {
-  Shirt, Coffee, GlassWater, Key, Table, Notebook, Gift,
-  GraduationCap, Baby, Backpack, Smartphone, FlaskConical
-} from 'lucide-react';
 
 const ICON_CATEGORIES = [
   {
@@ -75,30 +68,35 @@ const iconMap = ICON_CATEGORIES.flatMap(c => c.icons).reduce((map, { value, Icon
 
 const Inventario = () => {
   const [openAddType, setOpenAddType] = useState(false);
-  const [editingType, setEditingType] = useState(null);
-
-  const { deleteItemStock } = useDeleteItemStock();
-
-  const { isAuthenticated, user } = useContext(AuthContext);
-  const { itemStock, loading: stockLoading, error: stockError, filters, setFilters, refetch: refetchStock } = useItemStock();
-  const { types: itemTypes, fetchTypes, loading: typesLoading, error: typesError } = useItemTypes();
-  
-  const { removeType  } = useDeleteItemType();
-  const { restoreType } = useRestoreItemType();
-  const { handleEdit } = useEditItemStock();
-
-  const [openTrash, setOpenTrash] = useState(false);
-  const [trashedTypes, setTrashedTypes] = useState([]);
-  
+  const [editingType] = useState(null);
   const [openAddStock, setOpenAddStock] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
+  const [openTrash, setOpenTrash] = useState(false);
 
+  const { isAuthenticated, user } = useContext(AuthContext);
 
-  const { deletedTypes, fetchDeletedTypes, 
-    loading: deletedLoading, 
-    error: deletedError,
+  const { 
+    itemStock, 
+    loading: stockLoading, 
+    error: stockError, 
+    filters, 
+    setFilters, 
+    refetch: refetchStock 
+  } = useItemStock();
+  const { 
+    types: itemTypes, 
+    fetchTypes, 
+    loading: typesLoading, 
+    error: typesError 
+  } = useItemTypes();
+  const { 
+    deletedTypes, 
+    fetchDeletedTypes, 
   } = useDeletedItemTypes();
 
+  const { deleteItemStock } = useDeleteItemStock();
+  const { removeType  } = useDeleteItemType();
+  const { restoreType } = useRestoreItemType();
 
   useEffect(() => {
     fetchTypes();
@@ -116,10 +114,6 @@ const Inventario = () => {
     refetchStock();
   };
   
-  const handleCloseTrash = () => {
-    setOpenTrash(false);
-  };
-
   const handleDeleteStock = async (id) => {
     const result = await deleteDataAlert();
     if (result.isConfirmed) {
@@ -160,24 +154,19 @@ const Inventario = () => {
     }
   };
 
-  const handleEditType = (type) => {
-    setEditingType(type);
-    setOpenAddType(true);
+  const handleOpenTrashModal = async () => {
+    try {
+      await fetchDeletedTypes(); 
+      setOpenTrash(true);
+    } catch (err) {
+      console.error('[Inventario] Error al obtener eliminados:', err);
+    }
+  };
+  const handleCloseTrash = () => {
+    setOpenTrash(false);
   };
 
-  const handleCloseModal = () => {
-    setOpenAddType(false);
-    setEditingType(null);
-  };
 
-const handleGoTrash = async () => {
-  try {
-    await fetchDeletedTypes(); 
-    setOpenTrash(true);
-  } catch (err) {
-    console.error('[Inventario] Error al obtener eliminados:', err);
-  }
-};
   return (
     <Box className="inventory-container">
       <Typography className="inventory-title" variant="h4" gutterBottom>
@@ -245,7 +234,7 @@ const handleGoTrash = async () => {
               <Button
                 variant="outlined"
                 className="inventory-button inventory-button--outlined"
-                onClick={handleGoTrash}
+                onClick={handleOpenTrashModal}
               >
                 Papelera
               </Button>

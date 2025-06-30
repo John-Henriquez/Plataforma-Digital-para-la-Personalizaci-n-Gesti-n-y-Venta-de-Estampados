@@ -1,7 +1,13 @@
 /* Base */
+body {
+  font-family: var(--font-family);
+  color: var(--gray-900);
+  background-color: var(--gray-100);
+  line-height: 1.6;
+}
+
 .inventory-container {
   padding: var(--spacing-md);
-  font-family: var(--font-family);
   background-color: var(--gray-100);
 }
 
@@ -20,6 +26,11 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Filtros */
+.inventory-filter-grid {
+  margin-top: var(--spacing-md);
+}
+
 /* Carga */
 .inventory-loading {
   display: flex;
@@ -27,11 +38,7 @@
   padding: var(--spacing-lg);
 }
 
-/* Filtros */
-.inventory-filter-grid {
-  margin-top: var(--spacing-md);
-}
-
+/* Listas */
 .inventory-list {
   list-style: none;
   padding: 0;
@@ -46,10 +53,12 @@
   border-left: 4px solid var(--primary-light);
 }
 
+/* Tarjetas */
 .inventory-item-card {
   background-color: white;
   border-radius: var(--border-radius-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  padding: var(--spacing-md);
 }
 
 .inventory-item-card:hover {
@@ -57,6 +66,7 @@
   box-shadow: var(--shadow-md);
 }
 
+/* Detalles */
 .inventory-item-details {
   color: var(--gray-700);
 }
@@ -72,51 +82,19 @@
 }
 
 .inventory-item-color {
-  vertical-align: middle;
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #000;
   margin-left: var(--spacing-xs);
+  vertical-align: middle;
 }
 
-/* imagen en modal */
-
-.add-item-modal-image-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: var(--spacing-sm);
-  max-height: 150px; 
-  overflow: hidden; 
-  border: 1px solid var(--gray-300);
-  border-radius: var(--border-radius-sm);
-  background-color: var(--gray-100);
-  padding: var(--spacing-sm);
-}
-
-.add-item-modal-image-preview {
-  max-width: 100%;
-  max-height: 100%; 
-  object-fit: contain; 
-  border-radius: var(--border-radius-sm);
-}
-
-.inventory-image-upload {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--border-radius-sm);
-  background-color: var(--gray-100);
-  cursor: pointer;
-}
-
-.inventory-image-upload:hover {
-  background-color: var(--gray-200);
-}
-
-/* Botones de acción */
-
+/* Acciones */
 .inventory-action-buttons {
-  gap: var(--spacing-md);
   display: flex;
   justify-content: space-between;
+  gap: var(--spacing-md);
   margin-top: var(--spacing-sm);
 }
 
@@ -135,13 +113,15 @@
   gap: var(--spacing-xs);
 }
 
+/* Botones - variantes */
 .inventory-button--contained {
   background-color: var(--primary);
   color: white;
   border: 1px solid var(--primary);
 }
 
-.inventory-button--contained:hover {
+.inventory-button--contained:hover,
+.inventory-button--contained:focus {
   background-color: var(--primary-dark);
   border-color: var(--primary-dark);
   box-shadow: var(--shadow-sm);
@@ -153,12 +133,13 @@
   border: 1px solid var(--primary);
 }
 
-.inventory-button--outlined:hover {
+.inventory-button--outlined:hover,
+.inventory-button--outlined:focus {
   background-color: rgba(123, 44, 191, 0.08);
   box-shadow: var(--shadow-sm);
 }
 
-/* Botones de estado */
+/* Botones - estado */
 
 .inventory-button--error {
   color: var(--error);
@@ -179,7 +160,7 @@
   background-color: rgba(46, 204, 113, 0.08);
 }
 
-/* Botones secundarios */
+/* Botones - secundarios */
 
 .inventory-button--secondary {
   background-color: var(--secondary);
@@ -191,7 +172,7 @@
   border-color: var(--secondary-dark);
 }
 
-/* tamaño */
+/* Botones - tamaño */
 
 .inventory-button--small {
   padding: var(--spacing-xs) var(--spacing-sm);
@@ -208,6 +189,7 @@
   font-size: 1.1rem;
 }
 
+/* Botón - papelera */
 .btn-trash {
   padding: var(--spacing-xs) var(--spacing-md);
   border-radius: var(--border-radius-sm);
@@ -225,6 +207,56 @@
   color: var(--primary-dark);  
 }
 
+/* Modal - imagen */
+.add-item-modal-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--spacing-sm);
+  max-height: 150px;
+  overflow: hidden;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--gray-100);
+  padding: var(--spacing-sm);
+}
+
+.add-item-modal-image-preview {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--border-radius-sm);
+}
+
+.inventory-image-upload {
+  margin-top: var(--spacing-md);
+  padding: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--gray-100);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+}
+
+.inventory-image-upload:hover {
+  background-color: var(--gray-200);
+}
+
+/* Utilidades */
+.ml-xs { margin-left: var(--spacing-xs); }
+.ml-sm { margin-left: var(--spacing-sm); }
+.ml-md { margin-left: var(--spacing-md); }
+.text-error { color: var(--error); font-weight: bold; }
+.text-muted { color: var(--gray-700); }
+.text-small { font-size: 0.875rem; }
+
+/* Estados vacíos */
+.inventory-empty {
+  padding: var(--spacing-lg);
+  text-align: center;
+  color: var(--gray-700);
+  font-style: italic;
+}
 
 
 
