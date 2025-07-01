@@ -11,6 +11,7 @@ export const itemStockService = {
       const { itemTypeId, hexColor, size, quantity, price, images, minStock } = itemData;
       const itemStockRepo = transactionalEntityManager.getRepository(ItemStock);
       const itemTypeRepo = transactionalEntityManager.getRepository(ItemType);
+      const movementRepo = transactionalEntityManager.getRepository(InventoryMovement);
 
       if (!itemTypeId || !hexColor || quantity == null || price == null) {
         return [null, "Faltan campos obligatorios"];
@@ -34,7 +35,8 @@ export const itemStockService = {
     const existing = await itemStockRepo.findOne({
       where: {
         itemType: { id: itemTypeId },
-        hexColor
+        hexColor,
+        size: itemType.hasSizes ? size : null
       },
       relations: ["itemType"]
     });
@@ -66,7 +68,6 @@ export const itemStockService = {
 
       const savedItem = await itemStockRepo.save(newItem);
       
-      const movementRepo = transactionalEntityManager.getRepository(InventoryMovement);
       await movementRepo.save({
         type: "entrada",
         quantity: newItem.quantity,
@@ -74,6 +75,7 @@ export const itemStockService = {
         createdBy: { id: itemData.createdById }, 
         reason: generateInventoryReason("create")
       });
+
       return [savedItem, null];
     }).catch(error => {
       console.error("Error en createItemStock:", error.message, error.stack);
@@ -85,16 +87,24 @@ export const itemStockService = {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const where = {};
-      
-      if (filters.id) where.id = filters.id;
-      if (filters.itemTypeId) where.itemType = { id: filters.itemTypeId };
-      if (filters.size !== undefined) {
-        where.size = filters.size === "N/A" ? null : filters.size;
+      const parsedFilters = {
+      ...filters,
+      isActive:
+        filters.isActive === "false"
+          ? false
+          : filters.isActive === "true"
+          ? true
+          : filters.isActive,
+        };
+      if (parsedFilters.id) where.id = parsedFilters.id;
+      if (parsedFilters.itemTypeId) where.itemType = { id: parsedFilters.itemTypeId };
+      if (parsedFilters.size !== undefined) {
+        where.size = parsedFilters.size === "N/A" ? null : parsedFilters.size;
       }
 
-      if (filters.isActive !== undefined) {
-        where.isActive = filters.isActive;
-      } else if (filters.publicOnly !== false) {
+      if (parsedFilters.isActive !== undefined) {
+        where.isActive = parsedFilters.isActive;
+      } else if (parsedFilters.publicOnly !== false) {
         where.isActive = true;
       }
       const items = await repo.find({
@@ -102,10 +112,6 @@ export const itemStockService = {
         relations: ["itemType"],
         order: { createdAt: "DESC" }
       });
-
-      if (!items || items.length === 0) {
-        return [[], null];
-      }
 
       return [items, null];
     } catch (error) {
@@ -117,6 +123,7 @@ export const itemStockService = {
   async updateItemStock(id, updateData) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
+      const movementRepo = AppDataSource.getRepository(InventoryMovement);
       const item = await repo.findOne({ 
       where: { id },
       relations: ["itemType"]
@@ -125,7 +132,10 @@ export const itemStockService = {
     if (!item) {
       return [null, "Item de inventario no encontrado"];
     }
-    if (updateData.quantity !== undefined && !updateData.updatedById) {
+
+    const { updatedById } = updateData;
+
+    if (updateData.quantity !== undefined && !updatedById) {
       return [null, "El ID del usuario que actualiza es obligatorio para cambios de cantidad"];
     }
     if (updateData.quantity !== undefined && updateData.quantity < 0) {
@@ -146,7 +156,8 @@ export const itemStockService = {
         where: {
           id: Not(id), 
           itemType: { id: updateData.itemTypeId || item.itemType.id },
-          hexColor: updateData.hexColor || item.hexColor
+          hexColor: updateData.hexColor || item.hexColor,
+          size: updateData.size || item.size
         },
         relations: ["itemType"]
       });
@@ -156,6 +167,7 @@ export const itemStockService = {
       }
     }
 
+    const originalQuantity = item.quantity;
     const updatableFields = ["hexColor", "size", "quantity", "price", "images", "minStock", "isActive"];
     updatableFields.forEach(field => {
       if (updateData[field] !== undefined) {
@@ -163,76 +175,70 @@ export const itemStockService = {
       }
     });
 
-    if (updateData.quantity !== undefined && updateData.quantity !== item.quantity) {
+    const updatedItem = await repo.save(item);
 
-      const movementRepo = AppDataSource.getRepository(InventoryMovement);
-      const diff = updateData.quantity - item.quantity;
-
+    if (updateData.quantity !== undefined && updateData.quantity !== originalQuantity) {
+      const diff = updateData.quantity - originalQuantity;
       await movementRepo.save({
         type: diff > 0 ? "entrada" : "salida",
         quantity: Math.abs(diff),
         itemStock: item,
-        createdBy: { id: updateData.updatedById }, 
+        createdBy: { id: updatedById }, 
         reason: generateInventoryReason("adjust"),
       });
-
-    item.quantity = updateData.quantity;
-    } else if (updateData.updatedById) {
-      const movementRepo = AppDataSource.getRepository(InventoryMovement);
+    } else if (updatedById) {
       await movementRepo.save({
         type: "ajuste", 
         quantity: 0,
         itemStock: item,
-        createdBy: { id: updateData.updatedById },
+        createdBy: { id: updatedById },
         reason: generateInventoryReason("update"), 
       });
     }
-    const updatedItem = await repo.save(item);
     return [updatedItem, null];
-  } catch (error) {
-    console.error("Error en updateItemStock:", error.message, error.stack);
-    return [null, `Error al actualizar el item de inventario: ${error.message}`];
-  }
-    },
+    } catch (error) {
+      console.error("Error en updateItemStock:", error.message, error.stack);
+      return [null, `Error al actualizar el item de inventario: ${error.message}`];
+    }
+  },
 
-    async deleteItemStock(id) {
+  async deleteItemStock(id) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
+      const movementRepo = AppDataSource.getRepository(InventoryMovement);
       const item = await repo.findOne({ where: { id } });
 
       if (!item) {
         return [null, "Item de inventario no encontrado"];
       }
+      if (!item.isActive) {
+      return [null, "El item ya está desactivado"];
+      }
 
       item.isActive = false;
       item.deletedAt = new Date();
-      await repo.save(item);
+
+      const updated = await repo.save(item);
+
+      await movementRepo.save({
+        type: "ajuste",
+        quantity: 0,
+        itemStock: item,
+        createdBy: { id: userId },
+        reason: generateInventoryReason("deactivate")
+      });
       
-      return [{ id: item.id, message: "Item desactivado correctamente" }, null];
+      return [{ id: updated.id, message: "Item desactivado correctamente" }, null];
       } catch (error) {
         console.error("Error en deleteItemStock:", error);
         return [null, "Error al eliminar el item de inventario"];
       }
-    },
-
-  async emptyTrash() {
-    try {
-      const repo = AppDataSource.getRepository(ItemStock);
-      const itemsToDelete = await repo.find({ where: { isActive: false } });
-      if (itemsToDelete.length === 0) {
-        return [0, null]; 
-      }
-      await repo.remove(itemsToDelete);
-      return [itemsToDelete.length, null];
-    } catch (error) {
-      console.error("Error en emptyTrash:", error);
-      return [null, "Error al vaciar la papelera"];
-    }
   },
-
+    
   async restoreItemStock(id) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
+      const movementRepo = AppDataSource.getRepository(InventoryMovement);
       const item = await repo.findOne({ 
         where: { id }, 
         relations: ["itemType"] 
@@ -251,7 +257,16 @@ export const itemStockService = {
 
       item.isActive = true;
       item.deletedAt = null;
+
       const restoredItem = await repo.save(item);
+
+      await movementRepo.save({
+        type: "ajuste",
+        quantity: 0,
+        itemStock: restoredItem,
+        createdBy: { id: userId },
+        reason: generateInventoryReason("reactivate")
+      });
 
       return [restoredItem, null];
     } catch (error) {
@@ -263,11 +278,20 @@ export const itemStockService = {
   async forceDeleteItemStock(id) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
+      const movementRepo = AppDataSource.getRepository(InventoryMovement);
       const item = await repo.findOne({ where: { id } });
 
       if (!item) {
         return [null, "Item de inventario no encontrado"];
       }
+
+      await movementRepo.save({
+        type: "ajuste",
+        quantity: 0,
+        itemStock: item,
+        createdBy: { id: userId },
+        reason: generateInventoryReason("delete")
+      });
 
       await repo.remove(item);
 
@@ -276,6 +300,33 @@ export const itemStockService = {
       console.error("Error en forceDeleteItemStock:", error);
       return [null, "Error al eliminar permanentemente el item"];
     }
-  }
+  },
 
+  async emptyTrash() {
+    try {
+      const repo = AppDataSource.getRepository(ItemStock);
+      const movementRepo = AppDataSource.getRepository(InventoryMovement);
+      const itemsToDelete = await repo.find({ where: { isActive: false } });
+
+      if (itemsToDelete.length === 0) {
+        return [0, null]; 
+      }
+
+      for (const item of itemsToDelete) {
+        await movementRepo.save({
+          type: "ajuste",
+          quantity: 0,
+          itemStock: item,
+          createdBy: { id: userId },
+          reason: generateInventoryReason("purge")
+        });
+      }
+      
+      await repo.remove(itemsToDelete);
+      return [itemsToDelete.length, null];
+    } catch (error) {
+      console.error("Error en emptyTrash:", error);
+      return [null, "Error al vaciar la papelera"];
+    }
+  }
 }

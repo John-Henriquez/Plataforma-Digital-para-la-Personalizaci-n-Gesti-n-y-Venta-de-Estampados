@@ -4,8 +4,12 @@ import { getItemTypes } from '../../services/itemType.service';
 
 const initialFilters = {
   color: '',
-  size: ''
+  size: '',
+  typeId: '',
+  searchTerm: '',
+  stockStatus: '',
 };
+
 
 const useItemStock = () => {
     const [itemTypes, setItemTypes] = useState([]);

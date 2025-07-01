@@ -13,7 +13,6 @@ export const itemStockController = {
 
             const [items, error] = await itemStockService.getItemStock({
                 id: id ? parseInt(id) : undefined,
-                itemTypeId,
                 size,
                 isActive: isActive === "true" ? true : (isActive === "false" ? false : undefined)
             });

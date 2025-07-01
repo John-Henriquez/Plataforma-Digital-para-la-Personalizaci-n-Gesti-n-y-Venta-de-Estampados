@@ -90,6 +90,21 @@ body {
   vertical-align: middle;
 }
 
+.inventory-item-color-preview {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-left: var(--spacing-xs);
+  border: 1px solid #000;
+  vertical-align: middle;
+}
+
+.inventory-item-inactive {
+  margin-left: var(--spacing-sm);
+  color: var(--error);
+  font-weight: bold;
+}
+
 /* Acciones */
 .inventory-action-buttons {
   display: flex;
@@ -110,6 +125,18 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--spacing-xs);
+}
+
+.inventory-flex-space-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inventory-icon-label {
+  display: inline-flex;
+  align-items: center;
   gap: var(--spacing-xs);
 }
 

@@ -33,6 +33,7 @@ export const itemTypeService = {
         return [null, "Error al crear el tipo de ítem"];
         }
     },
+
     async getItemTypes() {
         try {
         const repo = AppDataSource.getRepository(ItemType);
@@ -49,6 +50,7 @@ export const itemTypeService = {
         return [null, "Error al obtener los tipos de ítem"];
         }
     },
+
     async getItemTypeById(id) {
     try {
         const repo = AppDataSource.getRepository(ItemType);
@@ -66,6 +68,7 @@ export const itemTypeService = {
         return [null, "Error al obtener el tipo de ítem"];
     }
     },
+
     async updateItemType(id, itemTypeData, userId) {
         try {
             const repo = AppDataSource.getRepository(ItemType);
@@ -100,6 +103,7 @@ export const itemTypeService = {
             return [null, "Error al actualizar el tipo de ítem"];
         }
     },
+
     async deleteItemType(id) {
         try {
             const itemTypeRepo = AppDataSource.getRepository(ItemType);
@@ -215,6 +219,7 @@ export const itemTypeService = {
             return [null, "Error al eliminar permanentemente el tipo de ítem"];
         }
     },
+
     async emptyTrash() {
         try {
             const repo = AppDataSource.getRepository(ItemType);
