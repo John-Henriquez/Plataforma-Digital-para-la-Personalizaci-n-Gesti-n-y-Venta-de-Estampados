@@ -95,8 +95,16 @@ export const itemStockController = {
     async deleteItemStock(req, res) {
         try {
             const { id } = req.params;
-            
-            const [result, error] = await itemStockService.deleteItemStock(id);
+            const userId = req.user?.id;
+            if (!id || isNaN(parseInt(id))) {
+            return handleErrorClient(res, 400, "ID debe ser un número");
+            }
+
+            if (!userId) {
+            return handleErrorClient(res, 401, "Usuario no autenticado");
+            }
+
+            const [result, error] = await itemStockService.deleteItemStock(parseInt(id), userId);
             if (error) return handleErrorClient(res, 404, error);
             
             handleSuccess(res, 200, result.message, { id: result.id });
@@ -107,7 +115,7 @@ export const itemStockController = {
     
     async emptyTrash(req, res) {
     try {
-        const [deletedCount, error] = await itemStockService.emptyTrash();
+        const [deletedCount, error] = await itemStockService.emptyTrash(req.user.id);
         if (error) return handleErrorClient(res, 500, error);
 
         handleSuccess(res, 200, `Papelera vaciada. Items eliminados: ${deletedCount}`);
@@ -140,8 +148,12 @@ export const itemStockController = {
         if (!id || isNaN(parseInt(id))) {
         return handleErrorClient(res, 400, "ID debe ser un número");
         }
+        const userId = req.user?.id;
+        if (!userId) {
+            return handleErrorClient(res, 401, "Usuario no autenticado");
+        }
 
-        const [result, error] = await itemStockService.forceDeleteItemStock(parseInt(id));
+        const [result, error] = await itemStockService.forceDeleteItemStock(parseInt(id), userId);
 
         if (error) return handleErrorClient(res, 404, error);
 

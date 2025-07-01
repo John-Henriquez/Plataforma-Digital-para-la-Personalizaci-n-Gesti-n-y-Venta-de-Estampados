@@ -202,7 +202,7 @@ export const itemStockService = {
     }
   },
 
-  async deleteItemStock(id) {
+  async deleteItemStock(id, userId) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
@@ -275,7 +275,7 @@ export const itemStockService = {
     }
   },
   
-  async forceDeleteItemStock(id) {
+  async forceDeleteItemStock(id, userId) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
@@ -302,7 +302,7 @@ export const itemStockService = {
     }
   },
 
-  async emptyTrash() {
+  async emptyTrash(userId) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);

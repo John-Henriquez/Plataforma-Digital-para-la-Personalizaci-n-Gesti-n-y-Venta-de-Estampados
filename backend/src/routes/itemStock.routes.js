@@ -9,14 +9,15 @@ router.get("/public", itemStockController.getPublicStock);
 
 router.use(authenticateJwt);
 
+router.delete("/trash", isAdmin, itemStockController.emptyTrash);
+router.patch("/restore/:id", isAdmin, itemStockController.restoreItemStock);
+router.delete("/force-delete/:id", isAdmin, itemStockController.forceDeleteItemStock);
+
 router.get("/", itemStockController.getItemStock);
 router.post("/", isAdmin, itemStockController.createItemStock);
 router.patch("/:id", isAdmin, itemStockController.updateItemStock);
 router.delete("/:id", isAdmin, itemStockController.deleteItemStock);
 
-router.delete("/trash", isAdmin, itemStockController.emptyTrash);
-router.patch("/restore/:id", isAdmin, itemStockController.restoreItemStock);
-router.delete("/force-delete/:id", isAdmin, itemStockController.forceDeleteItemStock);
 
 
 export default router;

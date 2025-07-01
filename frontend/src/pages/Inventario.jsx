@@ -98,8 +98,10 @@ const colorOptions = useMemo(() => {
       
       if (filters.searchTerm) {
         const searchTerm = filters.searchTerm.toLowerCase();
-        if (!item.itemType.name.toLowerCase().includes(searchTerm) &&
-            !item.color.toLowerCase().includes(searchTerm)) {
+        const itemName = item.itemType?.name?.toLowerCase() || '';
+        const itemHex = item.hexColor?.toLowerCase() || '';
+
+        if (!itemName.includes(searchTerm) && !itemHex.includes(searchTerm)) {
           return false;
         }
       }
@@ -324,13 +326,22 @@ const handleRestoreStock = async (id) => {
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              label="Talla"
-              name="size"
-              value={filters.size}
-              onChange={handleFilterChange}
-              fullWidth
-            />
+              <FormControl fullWidth>
+                <InputLabel>Talla</InputLabel>
+                <Select
+                  name="size"
+                  value={filters.size}
+                  onChange={handleFilterChange}
+                  label="Talla"
+                >
+                  <MenuItem value="">Todas</MenuItem>
+                  <MenuItem value="S">S</MenuItem>
+                  <MenuItem value="M">M</MenuItem>
+                  <MenuItem value="L">L</MenuItem>
+                  <MenuItem value="XL">XL</MenuItem>
+                  <MenuItem value="XXL">XXL</MenuItem>
+                </Select>
+              </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
