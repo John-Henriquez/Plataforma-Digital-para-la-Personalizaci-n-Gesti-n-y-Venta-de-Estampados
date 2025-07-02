@@ -49,11 +49,6 @@ const InventoryMovementSchema = new EntitySchema({
       length: 10,
       nullable: true,
     },
-    snapshotItemTypeName: {
-      type: "varchar",
-      length: 100,
-      nullable: true,
-    },
     snapshotPrice: {
       type: "decimal",
       precision: 10,

@@ -55,7 +55,6 @@ export function createItemSnapshot(itemStock) {
     snapshotItemName: itemStock?.itemType?.name || "Desconocido",
     snapshotItemColor: itemStock?.hexColor || null,
     snapshotItemSize: itemStock?.size || null,
-    snapshotItemTypeName: itemStock?.itemType?.name || "Desconocido",
     snapshotPrice: itemStock?.price || null,
   };
 }
