@@ -2,7 +2,8 @@ import { AppDataSource } from "../config/configDb.js";
 import ItemType from "../entity/itemType.entity.js";
 import ItemStock from "../entity/itemStock.entity.js";
 import InventoryMovement from "../entity/InventoryMovementSchema.js";
-import { generateInventoryReason } from "../helpers/inventory.helpers.js";
+import { createItemSnapshot, generateInventoryReason } from "../helpers/inventory.helpers.js";
+
 import { Not } from "typeorm";
 
 export const itemStockService = {
@@ -67,13 +68,16 @@ export const itemStockService = {
       });
 
       const savedItem = await itemStockRepo.save(newItem);
-      
+
+      const { operation, reason } = generateInventoryReason("create");
       await movementRepo.save({
         type: "entrada",
+        operation,  
+        reason, 
         quantity: newItem.quantity,
         itemStock: savedItem,
         createdBy: { id: itemData.createdById }, 
-        reason: generateInventoryReason("create")
+        ...createItemSnapshot(savedItem),
       });
 
       return [savedItem, null];
@@ -177,6 +181,8 @@ export const itemStockService = {
 
     const updatedItem = await repo.save(item);
 
+    const { operation, reason } = generateInventoryReason("update");
+
     if (updateData.quantity !== undefined && updateData.quantity !== originalQuantity) {
       const diff = updateData.quantity - originalQuantity;
       await movementRepo.save({
@@ -184,7 +190,9 @@ export const itemStockService = {
         quantity: Math.abs(diff),
         itemStock: item,
         createdBy: { id: updatedById }, 
-        reason: generateInventoryReason("adjust"),
+        operation,
+        reason,
+        ...createItemSnapshot(item),
       });
     } else if (updatedById) {
       await movementRepo.save({
@@ -192,7 +200,9 @@ export const itemStockService = {
         quantity: 0,
         itemStock: item,
         createdBy: { id: updatedById },
-        reason: generateInventoryReason("update"), 
+        operation,
+        reason,
+        ...createItemSnapshot(item),
       });
     }
     return [updatedItem, null];
@@ -220,12 +230,16 @@ export const itemStockService = {
 
       const updated = await repo.save(item);
 
+      const { operation, reason } = generateInventoryReason("deactivate");
+
       await movementRepo.save({
         type: "ajuste",
         quantity: 0,
         itemStock: item,
         createdBy: { id: userId },
-        reason: generateInventoryReason("deactivate")
+        operation,
+        reason,
+        ...createItemSnapshot(item),
       });
       
       return [{ id: updated.id, message: "Item desactivado correctamente" }, null];
@@ -235,7 +249,7 @@ export const itemStockService = {
       }
   },
     
-  async restoreItemStock(id) {
+  async restoreItemStock(id, userId) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
@@ -260,12 +274,16 @@ export const itemStockService = {
 
       const restoredItem = await repo.save(item);
 
+      const { operation, reason } = generateInventoryReason("reactivate");
+
       await movementRepo.save({
         type: "ajuste",
         quantity: 0,
         itemStock: restoredItem,
         createdBy: { id: userId },
-        reason: generateInventoryReason("reactivate")
+        operation,
+        reason,
+        ...createItemSnapshot(restoredItem),
       });
 
       return [restoredItem, null];
@@ -279,18 +297,25 @@ export const itemStockService = {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
-      const item = await repo.findOne({ where: { id } });
+      const item = await repo.findOne({ 
+        where: { id },
+        relations: ["itemType"]
+      });
 
       if (!item) {
         return [null, "Item de inventario no encontrado"];
       }
+
+      const { operation, reason } = generateInventoryReason("delete");
 
       await movementRepo.save({
         type: "ajuste",
         quantity: 0,
         itemStock: item,
         createdBy: { id: userId },
-        reason: generateInventoryReason("delete")
+        operation,
+        reason,
+        ...createItemSnapshot(item),
       });
 
       await repo.remove(item);
@@ -306,11 +331,16 @@ export const itemStockService = {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
-      const itemsToDelete = await repo.find({ where: { isActive: false } });
+      const itemsToDelete = await repo.find({ 
+        where: { isActive: false },
+        relations: ["itemType"]
+      });
 
       if (itemsToDelete.length === 0) {
         return [0, null]; 
       }
+
+      const { operation, reason } = generateInventoryReason("purge");
 
       for (const item of itemsToDelete) {
         await movementRepo.save({
@@ -318,7 +348,9 @@ export const itemStockService = {
           quantity: 0,
           itemStock: item,
           createdBy: { id: userId },
-          reason: generateInventoryReason("purge")
+          operation,
+          reason,
+          ...createItemSnapshot(item),
         });
       }
       

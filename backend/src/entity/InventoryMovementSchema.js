@@ -15,6 +15,12 @@ const InventoryMovementSchema = new EntitySchema({
       enum: ["entrada", "salida", "ajuste"],
       nullable: false,
     },
+    operation: { 
+      type: "varchar",
+      length: 50,
+      nullable: false,
+      default: "unspecified",
+    },
     quantity: { 
         type: "int", 
         nullable: false 
@@ -26,6 +32,33 @@ const InventoryMovementSchema = new EntitySchema({
     createdAt: { 
         type: "timestamp", 
         createDate: true 
+    },
+    //snapshot fields
+    snapshotItemName: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    },
+    snapshotItemColor: {
+      type: "varchar",
+      length: 7,
+      nullable: true,
+    },
+    snapshotItemSize: {
+      type: "varchar",
+      length: 10,
+      nullable: true,
+    },
+    snapshotItemTypeName: {
+      type: "varchar",
+      length: 100,
+      nullable: true,
+    },
+    snapshotPrice: {
+      type: "decimal",
+      precision: 10,
+      scale: 2,
+      nullable: true,
     },
   },
   relations: {

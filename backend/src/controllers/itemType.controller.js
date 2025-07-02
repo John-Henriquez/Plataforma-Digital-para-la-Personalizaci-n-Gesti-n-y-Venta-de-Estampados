@@ -63,6 +63,7 @@ export const itemTypeController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+
     async getItemTypes(req, res) {
         try {   
             const [itemTypes, error] = await itemTypeService.getItemTypes();
@@ -73,6 +74,7 @@ export const itemTypeController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+
     async getItemTypeById(req, res) {
     try {
         const { id } = req.params;
@@ -95,6 +97,7 @@ export const itemTypeController = {
         handleErrorServer(res, 500, error.message);
     }
     },
+
     async updateItemType(req, res) {
         try {
             const { id } = req.params;
@@ -161,6 +164,7 @@ export const itemTypeController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+
     async deleteItemType(req, res) {
         try {
             const { id } = req.params;
@@ -183,6 +187,7 @@ export const itemTypeController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+
     async restoreItemType(req, res) {
         try {
             const { id } = req.params;
@@ -205,6 +210,7 @@ export const itemTypeController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+
     async getDeletedItemTypes(req, res) {
         try {
             const [deletedItemTypes, error] = await itemTypeService.getDeletedItemTypes();
@@ -216,6 +222,7 @@ export const itemTypeController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+
     async forceDeleteItemType(req, res) {
         try {
             const { id } = req.params;
@@ -233,6 +240,7 @@ export const itemTypeController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+    
     async emptyTrash(req, res) {
         try {
             const [deletedItems, error] = await itemTypeService.emptyTrash();
