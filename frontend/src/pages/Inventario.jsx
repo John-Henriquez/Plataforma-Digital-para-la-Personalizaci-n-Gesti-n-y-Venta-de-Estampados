@@ -29,6 +29,9 @@ import { AuthContext } from '../context/AuthContext.jsx';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
 import '../styles/pages/inventario.css';
 
+import InventoryMovementHistory from '../components/InventoryMovementHistory.jsx';
+import Modal from '@mui/material/Modal';
+
 const Inventario = () => {
   const [openAddType, setOpenAddType] = useState(false);
   const [editingType] = useState(null);
@@ -36,6 +39,8 @@ const Inventario = () => {
   const [editingStock, setEditingStock] = useState(null);
   const [openTrash, setOpenTrash] = useState(false);
   const [openStockTrash, setOpenStockTrash] = useState(false);
+
+  const [openHistory, setOpenHistory] = useState(false);
 
   const { deletedStock, fetchDeletedStock } = useDeletedItemStock();
 
@@ -78,17 +83,17 @@ const Inventario = () => {
     }));
   };
 
-const colorOptions = useMemo(() => {
-  const usedHexColors = new Set(
-    itemStock
-      .filter(item => item.hexColor)  
-      .map(item => item.hexColor.toUpperCase()) 
-  );
+  const colorOptions = useMemo(() => {
+    const usedHexColors = new Set(
+      itemStock
+        .filter(item => item.hexColor)  
+        .map(item => item.hexColor.toUpperCase()) 
+    );
 
-  return COLOR_DICTIONARY.filter(({ hex }) => 
-    usedHexColors.has(hex.toUpperCase())
-  );
-}, [itemStock]);
+    return COLOR_DICTIONARY.filter(({ hex }) => 
+      usedHexColors.has(hex.toUpperCase())
+    );
+  }, [itemStock]);
 
   const filteredStock = useMemo(() => {
     if (!itemStock) return [];
@@ -177,49 +182,48 @@ const colorOptions = useMemo(() => {
     }
   };
 
-const handleRestoreType = async (id) => {
-  try {
-    await restoreType(id);
-    showSuccessAlert('Restaurado', 'El tipo de ítem fue restaurado correctamente');
+  const handleRestoreType = async (id) => {
+    try {
+      await restoreType(id);
+      showSuccessAlert('Restaurado', 'El tipo de ítem fue restaurado correctamente');
 
-    await Promise.all([
-      fetchTypes(),          
-      fetchDeletedTypes(), 
-      refetchStock(),  
-    ]);
+      await Promise.all([
+        fetchTypes(),          
+        fetchDeletedTypes(), 
+        refetchStock(),  
+      ]);
 
-    setOpenTrash(false); 
-  } catch (error) {
-    showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
-  }
-};
-
-const handleRestoreStock = async (id) => {
-  try {
-    const stockItem = deletedStock.find(item => item.id === id);
-    if (!stockItem || !stockItem.itemType?.isActive) {
-      showErrorAlert(
-        'No se puede restaurar',
-        'No puedes restaurar este stock porque su tipo de ítem aún está inactivo.'
-      );
-      return;
+      setOpenTrash(false); 
+    } catch (error) {
+      showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
     }
+  };
 
-    await restore(id);
-    showSuccessAlert('Restaurado', 'El stock fue restaurado correctamente');
+  const handleRestoreStock = async (id) => {
+    try {
+      const stockItem = deletedStock.find(item => item.id === id);
+      if (!stockItem || !stockItem.itemType?.isActive) {
+        showErrorAlert(
+          'No se puede restaurar',
+          'No puedes restaurar este stock porque su tipo de ítem aún está inactivo.'
+        );
+        return;
+      }
 
-    await Promise.all([
-      refetchStock(),
-      fetchDeletedStock(),
-      fetchTypes(),
-    ]);
+      await restore(id);
+      showSuccessAlert('Restaurado', 'El stock fue restaurado correctamente');
 
-    setOpenStockTrash(false);
-  } catch (error) {
-    showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
-  }
-};
+      await Promise.all([
+        refetchStock(),
+        fetchDeletedStock(),
+        fetchTypes(),
+      ]);
 
+      setOpenStockTrash(false);
+    } catch (error) {
+      showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
+    }
+  };
 
   const handleOpenTrashModal = async () => {
     try {
@@ -258,7 +262,7 @@ const handleRestoreStock = async (id) => {
         </Alert>
       )}
 
-<Paper className="inventory-paper">
+      <Paper className="inventory-paper">
         <Typography variant="h6" sx={{ mb: 2 }}>Filtros de Búsqueda</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
@@ -463,6 +467,15 @@ const handleRestoreStock = async (id) => {
             >
               Papelera Stock
             </Button>
+            <Button
+              variant="outlined"
+              color="info"
+              className="inventory-button inventory-button--outlined"
+              onClick={() => setOpenHistory(true)}
+            >
+              Historial
+            </Button>
+
           </Box>
           <Typography variant="h5">Inventario</Typography>
 
@@ -577,6 +590,27 @@ const handleRestoreStock = async (id) => {
         itemTypes={itemTypes}
         editingStock={editingStock}
       />
+      <Modal
+        open={openHistory}
+        onClose={() => setOpenHistory(false)}
+        aria-labelledby="historial-inventario"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        <Box sx={{
+          width: '90%',
+          maxHeight: '90%',
+          overflowY: 'auto',
+          bgcolor: 'background.paper',
+          p: 4,
+          borderRadius: 2,
+          boxShadow: 24,
+        }}>
+          <Typography id="historial-inventario" variant="h6" gutterBottom>
+            Historial de Movimientos de Inventario
+          </Typography>
+          <InventoryMovementHistory />
+        </Box>
+      </Modal>
     </Box>
     
   );

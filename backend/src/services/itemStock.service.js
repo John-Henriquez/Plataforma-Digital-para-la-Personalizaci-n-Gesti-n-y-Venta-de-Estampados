@@ -253,6 +253,10 @@ export const itemStockService = {
     
   async restoreItemStock(id, userId) {
     try {
+      if (!userId) {
+        return [null, "Se requiere el ID del usuario que realiza la acción"];
+      }
+      
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
       const item = await repo.findOne({ 

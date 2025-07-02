@@ -2,8 +2,8 @@ import { AppDataSource } from "../config/configDb.js";
 import { Between } from "typeorm";
 import InventoryMovement from "../entity/InventoryMovementSchema.js";
 
-export const inventoryMovementReportService = {
-  async getInventoryMovementsReport(filters) {
+export const inventoryMovementService = {
+  async getInventoryMovements(filters) {
     try {
       const repo = AppDataSource.getRepository(InventoryMovement);
 

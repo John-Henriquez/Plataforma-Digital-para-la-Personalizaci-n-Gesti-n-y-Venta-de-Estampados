@@ -1,8 +1,8 @@
 import { handleErrorClient, handleErrorServer, handleSuccess } from "../handlers/responseHandlers.js";
-import { inventoryMovementReportService } from "../services/inventoryMovementReport.service.js";
+import { inventoryMovementService } from "../services/inventoryMovement.service.js";
 
-export const inventoryMovementReportController = {
-  async getInventoryMovementsReport(req, res) {
+export const inventoryMovementController = {
+  async getInventoryMovements(req, res) {
     try {
       const filters = {
         startDate: req.query.startDate,
@@ -12,7 +12,7 @@ export const inventoryMovementReportController = {
         createdBy: req.query.createdBy,
       };
 
-      const [reportData, error] = await inventoryMovementReportService.getInventoryMovementsReport(filters);
+      const [reportData, error] = await inventoryMovementService.getInventoryMovements(filters);
       if (error) return handleErrorClient(res, 400, error);
 
       handleSuccess(res, 200, "Informe de movimientos de inventario obtenido", reportData);
