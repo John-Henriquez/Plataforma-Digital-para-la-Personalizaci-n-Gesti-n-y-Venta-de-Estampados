@@ -11,6 +11,8 @@ import AddItemTypeModal from '../components/AddItemTypeModal.jsx';
 import AddItemStockModal from '../components/AddItemStockModal.jsx';
 import ItemTypeTrash from '../components/ItemTypeTrashModal.jsx';
 import ItemStockTrash from '../components/ItemStockTrashModal.jsx';
+import PackModal from '../components/PackModal.jsx';
+import usePack from '../hooks/pack/usePack.jsx';
 
 import useItemStock from '../hooks/itemStock/useItemStock.jsx';
 import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock.jsx';
@@ -41,10 +43,18 @@ const Inventario = () => {
   const [openStockTrash, setOpenStockTrash] = useState(false);
 
   const [openHistory, setOpenHistory] = useState(false);
+  const [openPackModal, setOpenPackModal] = useState(false);
+  const [editingPack, setEditingPack] = useState(null);
 
   const { deletedStock, fetchDeletedStock } = useDeletedItemStock();
 
   const { isAuthenticated, user } = useContext(AuthContext);
+
+  const{
+    packs, 
+    loading: packsLoading, 
+    error: packsError, 
+  } = usePack();
 
   const { 
     itemStock, 
@@ -82,6 +92,7 @@ const Inventario = () => {
       [name]: value
     }));
   };
+
 
   const colorOptions = useMemo(() => {
     const usedHexColors = new Set(
@@ -137,32 +148,40 @@ const Inventario = () => {
     if (!isAuthenticated || user?.rol !== 'administrador') {
     return <Navigate to="/auth" />;
   }
+  
 
+  const initialFilters = {
+    color: '',
+    size: '',
+    typeId: '',
+    searchTerm: '',
+    stockStatus: ''
+  };
   const resetFilters = () => {
-    setFilters({
-      color: '',
-      size: '',
-      typeId: '',
-      searchTerm: '',
-      stockStatus: ''
-    });
+    setFilters(initialFilters);
     refetchStock();
   };
   
-  const handleDeleteStock = async (id) => {
-    const result = await deleteDataAlert();
-    if (result.isConfirmed) {
-      try {
-        await deleteItemStock(id);
-        showSuccessAlert('Eliminado', 'El item fue eliminado correctamente');
-        refetchStock();
-      } catch (error) {
-        console.error(error);
-        const message = error?.message || 'Ocurrió un error inesperado';
-        showErrorAlert('Error al eliminar', message);
-      }
+const handleDeleteStock = async (id) => {
+  const result = await deleteDataAlert();
+  if (!result.isConfirmed) return;
+
+  try {
+    await deleteItemStock(id); // ✔️ si lanza, lo atrapamos abajo
+    showSuccessAlert('Eliminado', 'El item fue eliminado correctamente');
+    refetchStock();
+  } catch (error) {
+    console.error('❌ Error al eliminar:', error);
+    if (error.status === 409) {
+      showErrorAlert('No se puede eliminar', error.message);
+    } else {
+      showErrorAlert('Error inesperado', error.message || 'Algo salió mal');
     }
-  };
+  }
+};
+
+
+
 
   const handleDeleteType = async (id) => {
     const result = await deleteDataAlert();
@@ -256,7 +275,7 @@ const Inventario = () => {
         Gestión de Inventario
       </Typography>
 
-      {(stockError || typesError) && (
+      {(stockError || typesError || packsError) && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {stockError || typesError}
         </Alert>
@@ -449,7 +468,7 @@ const Inventario = () => {
               ))}
             </ul>
           </Paper>
-
+        {/* Sección de Inventario */}
         <Paper className="inventory-paper">
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
             <Button
@@ -458,6 +477,17 @@ const Inventario = () => {
               onClick={() => setOpenAddStock(true)}
             >
               Nuevo Stock
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              className="inventory-button inventory-button--contained"
+              onClick={() => {
+                setEditingPack(null);
+                setOpenPackModal(true);
+              }}
+            >
+              Nuevo Pack
             </Button>
             <Button
               variant="outlined"
@@ -552,6 +582,47 @@ const Inventario = () => {
             );
           })}
         </Paper>
+        <Paper className="inventory-paper" sx={{ mt: 3 }}>
+          <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              mb: 2,
+              flexWrap: 'wrap',
+              gap: 2
+            }}>
+              <Typography variant="h5">Packs ({packs.length})</Typography>
+                            
+              {/* Filtros y botones para packs */}
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              {/* ... controles de filtrado para packs ... */}
+                            </Box>
+                          </Box>
+
+                          {/* Listado de packs */}
+                          {packsLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                              <CircularProgress />
+                            </Box>
+                          ) : packs.length > 0 ? (
+                            <Grid container spacing={2}>
+                              {packs.map((pack) => (
+                                <Grid item xs={12} sm={6} md={4} key={pack.id}>
+                                  {/* Tarjeta individual de pack */}
+                                <Paper className="inventory-item-card" sx={{ p: 2 }}>
+                                  {/* Contenido del pack */}
+                                <Typography variant="h6">{pack.name}</Typography>
+                                  {/* ... más detalles del pack ... */}
+                              </Paper>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    ) : (
+                  <Typography variant="body1" sx={{ textAlign: 'center', py: 3 }}>
+                    No se encontraron packs
+                </Typography>
+              )}
+          </Paper>
         </>
       )}
       
@@ -589,6 +660,17 @@ const Inventario = () => {
         onCreated={refetchStock}
         itemTypes={itemTypes}
         editingStock={editingStock}
+      />
+      <PackModal
+        open={openPackModal}
+        onClose={() => setOpenPackModal(false)}
+        onCompleted={() => {
+          setOpenPackModal(false);
+        }}
+        editingPack={editingPack}
+        currentUserRut={user?.rut}
+        itemStock={itemStock} 
+        refetchStocks={refetchStock} 
       />
       <Modal
         open={openHistory}

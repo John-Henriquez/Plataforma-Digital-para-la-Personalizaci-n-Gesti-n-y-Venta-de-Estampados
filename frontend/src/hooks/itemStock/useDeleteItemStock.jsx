@@ -3,22 +3,15 @@ import { deleteItemStock as deleteItemStockService } from '../../services/itemSt
 
 const useDeleteItemStock = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const deleteItemStock = async (id) => {
     setLoading(true);
-    try {
-      const updatedItem = await deleteItemStockService(id);
-      return updatedItem;
-    } catch (err) {
-      const errorMsg = err?.message || (typeof err === 'string' ? err : JSON.stringify(err));
-      setError(errorMsg);
-    } finally {
-      setLoading(false);
-    }
+    const [result, error] = await deleteItemStockService(id);
+    setLoading(false);
+    return [result, error];
   };
 
-  return { deleteItemStock, loading, error };
+  return { deleteItemStock, loading };
 };
 
 export default useDeleteItemStock;

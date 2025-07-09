@@ -35,14 +35,18 @@ export async function updateItemStock(id, updatedData) {
 
 
 export async function deleteItemStock(id) {
-    try {
-        const response = await axios.delete(`/item-stocks/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error('Error deleting item stock:', error);
-        throw error.response?.data || error.message;
-    }
+  try {
+    const response = await axios.delete(`/item-stocks/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting item stock:', error);
+    throw {
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message || 'Error desconocido',
+    };
+  }
 }
+
 
 export async function getDeletedItemStock() {
   try {
