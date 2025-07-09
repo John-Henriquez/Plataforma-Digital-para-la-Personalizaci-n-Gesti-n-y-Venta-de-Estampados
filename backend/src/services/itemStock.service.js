@@ -2,12 +2,14 @@ import { AppDataSource } from "../config/configDb.js";
 import ItemType from "../entity/itemType.entity.js";
 import ItemStock from "../entity/itemStock.entity.js";
 import InventoryMovement from "../entity/InventoryMovementSchema.js";
+import Pack from "../entity/pack.entity.js";
+import PackItem from "../entity/packItem.entity.js";
 import { createItemSnapshot, generateInventoryReason } from "../helpers/inventory.helpers.js";
 
 import { Not } from "typeorm";
 
 export const itemStockService = {
-  async createItemStock(itemData) {
+  async createItemStock(itemData, userId) {
     return await AppDataSource.transaction(async transactionalEntityManager => {
       const { itemTypeId, hexColor, size, quantity, price, images, minStock } = itemData;
       const itemStockRepo = transactionalEntityManager.getRepository(ItemStock);
@@ -64,7 +66,8 @@ export const itemStockService = {
         price,
         images: processedImages,
         minStock: minStockValue,
-        itemType
+        itemType,
+        createdBy: { id: userId },
       });
 
       const savedItem = await itemStockRepo.save(newItem);
@@ -76,7 +79,7 @@ export const itemStockService = {
         reason, 
         quantity: newItem.quantity,
         itemStock: savedItem,
-        createdBy: { id: itemData.createdById }, 
+        createdBy: { id: userId  }, 
         ...createItemSnapshot(savedItem),
       });
 
@@ -124,7 +127,7 @@ export const itemStockService = {
     }
   },
 
-  async updateItemStock(id, updateData) {
+  async updateItemStock(id, updateData, userId) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
@@ -189,17 +192,17 @@ export const itemStockService = {
         type: diff > 0 ? "entrada" : "salida",
         quantity: Math.abs(diff),
         itemStock: item,
-        createdBy: { id: updatedById }, 
+        createdBy: { id: userId }, 
         operation,
         reason,
         ...createItemSnapshot(item),
       });
-    } else if (updatedById) {
+    } else if (userId) {
       await movementRepo.save({
         type: "ajuste", 
         quantity: 0,
         itemStock: item,
-        createdBy: { id: updatedById },
+        createdBy: { id: userId },
         operation,
         reason,
         ...createItemSnapshot(item),
@@ -215,16 +218,28 @@ export const itemStockService = {
   async deleteItemStock(id, userId) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
+      const packItemRepo = AppDataSource.getRepository(PackItem);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
-      const item = await repo.findOne({ 
+
+      const item = await repo.findOne({
         where: { id },
-        relations: ["itemType"] 
+        relations: ["itemType"]
       });
+
       if (!item) {
-        return [null, "Item de inventario no encontrado"];
+        return [null, { errorCode: 404, message: "Item de inventario no encontrado" }];
       }
+
       if (!item.isActive) {
-      return [null, "El item ya está desactivado"];
+        return [null, { errorCode: 409, message: "El item ya está desactivado" }];
+      }
+
+      const isUsed = await packItemRepo.count({ where: { itemStock: { id: item.id } } });
+      if (isUsed > 0) {
+        return [null, {
+          errorCode: 409,
+          message: "No se puede desactivar este item porque está siendo utilizado en uno o más paquetes"
+        }];
       }
 
       item.isActive = false;
@@ -243,14 +258,14 @@ export const itemStockService = {
         reason,
         ...createItemSnapshot(item),
       });
-      
+
       return [{ id: updated.id, message: "Item desactivado correctamente" }, null];
-      } catch (error) {
-        console.error("Error en deleteItemStock:", error);
-        return [null, "Error al eliminar el item de inventario"];
-      }
+    } catch (error) {
+      console.error("Error en deleteItemStock:", error);
+      return [null, { errorCode: 500, message: "Error interno al desactivar el item de inventario" }];
+    }
   },
-    
+
   async restoreItemStock(id, userId) {
     try {
       if (!userId) {
@@ -302,6 +317,8 @@ export const itemStockService = {
   async forceDeleteItemStock(id, userId) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
+      const packRepo = AppDataSource.getRepository(Pack);
+      const packItemRepo = AppDataSource.getRepository(PackItem);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
       const item = await repo.findOne({ 
         where: { id },
@@ -310,6 +327,12 @@ export const itemStockService = {
 
       if (!item) {
         return [null, "Item de inventario no encontrado"];
+      }
+      
+      const isUsed = await packItemRepo.count({ where: { itemStock: { id } } });
+
+      if (isUsed > 0) {
+        return [null, "No se puede eliminar este item porque está siendo utilizado en uno o más paquetes"];
       }
 
       const { operation, reason } = generateInventoryReason("delete");
@@ -336,19 +359,37 @@ export const itemStockService = {
   async emptyTrash(userId) {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
+      const packItemRepo = AppDataSource.getRepository(PackItem);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
-      const itemsToDelete = await repo.find({ 
+
+      const itemsToDelete = await repo.find({
         where: { isActive: false },
         relations: ["itemType"]
       });
 
       if (itemsToDelete.length === 0) {
-        return [0, null]; 
+        return [0, null];
       }
 
       const { operation, reason } = generateInventoryReason("purge");
 
+      let deletedCount = 0;
+      const notDeleted = [];
+
       for (const item of itemsToDelete) {
+        const isUsed = await packItemRepo.count({
+          where: { itemStock: { id: item.id } }
+        });
+
+        if (isUsed > 0) {
+          notDeleted.push({
+            id: item.id,
+            name: item.itemType?.name || "",
+            reason: "Usado en uno o más paquetes"
+          });
+          continue;
+        }
+
         await movementRepo.save({
           type: "ajuste",
           quantity: 0,
@@ -358,13 +399,23 @@ export const itemStockService = {
           reason,
           ...createItemSnapshot(item),
         });
+
+        await repo.remove(item);
+        deletedCount++;
       }
-      
-      await repo.remove(itemsToDelete);
-      return [itemsToDelete.length, null];
+
+      if (notDeleted.length > 0) {
+        const message = `Algunos items no se eliminaron porque están en uso:\n${notDeleted
+          .map((i) => `• ${i.name} (ID: ${i.id})`)
+          .join("\n")}`;
+        return [deletedCount, message];
+      }
+
+      return [deletedCount, null];
     } catch (error) {
       console.error("Error en emptyTrash:", error);
       return [null, "Error al vaciar la papelera"];
     }
   }
+
 }

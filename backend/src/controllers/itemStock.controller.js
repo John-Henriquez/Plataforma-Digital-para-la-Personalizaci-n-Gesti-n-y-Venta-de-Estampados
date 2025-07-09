@@ -54,10 +54,7 @@ export const itemStockController = {
             return handleErrorClient(res, 400, "Error de validación", error.details);
         }
 
-        const [newItem, serviceError] = await itemStockService.createItemStock({
-            ...req.body,
-            createdById: req.user.id  
-        });
+        const [newItem, serviceError] = await itemStockService.createItemStock(req.body, req.user.id);
 
         if (serviceError) return handleErrorClient(res, 400, serviceError);
             handleSuccess(res, 201, "Item creado en inventario", newItem);
@@ -93,24 +90,31 @@ export const itemStockController = {
     },
 
     async deleteItemStock(req, res) {
-        try {
-            const { id } = req.params;
-            const userId = req.user?.id;
-            if (!id || isNaN(parseInt(id))) {
-            return handleErrorClient(res, 400, "ID debe ser un número");
-            }
+    try {
+        const { id } = req.params;
+        const userId = req.user?.id;
 
-            if (!userId) {
-            return handleErrorClient(res, 401, "Usuario no autenticado");
-            }
-
-            const [result, error] = await itemStockService.deleteItemStock(parseInt(id), userId);
-            if (error) return handleErrorClient(res, 404, error);
-            
-            handleSuccess(res, 200, result.message, { id: result.id });
-        } catch (error) {
-            handleErrorServer(res, 500, error.message);
+        if (!id || isNaN(parseInt(id))) {
+        return handleErrorClient(res, 400, "ID debe ser un número");
         }
+
+        if (!userId) {
+        return handleErrorClient(res, 401, "Usuario no autenticado");
+        }
+
+        const [result, error] = await itemStockService.deleteItemStock(parseInt(id), userId);
+
+        if (error) {
+        if (typeof error === "object" && error.errorCode) {
+            return handleErrorClient(res, error.errorCode, error.message);
+        }
+        return handleErrorClient(res, 404, error);
+        }
+
+        handleSuccess(res, 200, result.message, { id: result.id });
+    } catch (error) {
+        handleErrorServer(res, 500, error.message);
+    }
     },
     
     async emptyTrash(req, res) {
@@ -128,11 +132,16 @@ export const itemStockController = {
     async restoreItemStock(req, res) {
         try {
             const { id } = req.params;
+            const userId = req.user?.id;
+
             if (!id || isNaN(parseInt(id))) {
             return handleErrorClient(res, 400, "ID debe ser un número");
             }
 
-            const [restoredItem, error] = await itemStockService.restoreItemStock(parseInt(id));
+            if (!userId) {
+            return handleErrorClient(res, 401, "Usuario no autenticado");
+            }
+            const [restoredItem, error] = await itemStockService.restoreItemStock(parseInt(id), userId);
             if (error) return handleErrorClient(res, 404, error);
 
             handleSuccess(res, 200, "Item restaurado", restoredItem);
@@ -155,7 +164,12 @@ export const itemStockController = {
 
         const [result, error] = await itemStockService.forceDeleteItemStock(parseInt(id), userId);
 
-        if (error) return handleErrorClient(res, 404, error);
+        if (error) {
+            if (error.includes("usado por uno o más packs")) {
+                return handleErrorClient(res, 409, error); 
+            }
+            return handleErrorClient(res, 404, error);
+        }
 
         handleSuccess(res, 200, result.message, { id: result.id });
         } catch (error) {

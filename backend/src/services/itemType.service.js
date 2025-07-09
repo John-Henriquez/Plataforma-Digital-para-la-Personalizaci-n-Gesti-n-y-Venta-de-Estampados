@@ -150,7 +150,7 @@ export const itemTypeService = {
         }
     },
 
-    async deleteItemType(id) {
+    async deleteItemType(id, userId) {
         try {
             const itemTypeRepo = AppDataSource.getRepository(ItemType);
             const itemStockRepo = AppDataSource.getRepository(ItemStock);
@@ -197,7 +197,7 @@ export const itemTypeService = {
         }
     },
 
-    async restoreItemType(id) {
+    async restoreItemType(id, userId) {
         try {
             const itemTypeRepo = AppDataSource.getRepository(ItemType);
             const itemStockRepo = AppDataSource.getRepository(ItemStock);

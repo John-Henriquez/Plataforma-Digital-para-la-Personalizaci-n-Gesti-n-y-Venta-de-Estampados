@@ -50,13 +50,30 @@ export function generateInventoryReason(action) {
   return result;
 }
 
-export function createItemSnapshot(itemStock) {
-  return {
-    snapshotItemName: itemStock?.itemType?.name || "Desconocido",
-    snapshotItemColor: itemStock?.hexColor || null,
-    snapshotItemSize: itemStock?.size || null,
-    snapshotPrice: itemStock?.price || null,
-  };
+export function createItemSnapshot(entity) {
+  if ("itemType" in entity) {
+    return {
+      snapshotItemName: entity?.itemType?.name || "Desconocido",
+      snapshotItemColor: entity?.hexColor || null,
+      snapshotItemSize: entity?.size || null,
+      snapshotPrice: entity?.price || null,
+    };
+  } else if ("name" in entity && "price" in entity && !("itemType" in entity)) {
+    return {
+      snapshotItemName: entity.name,
+      snapshotItemColor: null,
+      snapshotItemSize: null,
+      snapshotPrice: entity.price ?? null,
+    };
+  } else {
+    return {
+      snapshotItemName: "Entidad desconocida",
+      snapshotItemColor: null,
+      snapshotItemSize: null,
+      snapshotPrice: null,
+    };
+  }
 }
+
 
 

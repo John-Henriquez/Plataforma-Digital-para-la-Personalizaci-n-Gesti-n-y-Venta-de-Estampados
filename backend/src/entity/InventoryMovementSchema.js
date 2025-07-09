@@ -33,6 +33,10 @@ const InventoryMovementSchema = new EntitySchema({
         type: "timestamp", 
         createDate: true 
     },
+    deletedAt: {
+      type: "timestamp",
+      nullable: true,
+    },
     //snapshot fields
     snapshotItemName: {
       type: "varchar",
