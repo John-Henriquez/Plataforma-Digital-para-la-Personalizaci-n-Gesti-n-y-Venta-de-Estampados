@@ -79,7 +79,11 @@ export const itemStockController = {
                 ...req.body,
                 updatedById: req.user.id
             };
-            const [updatedItem, serviceError] = await itemStockService.updateItemStock(parseInt(id), updateData);
+            
+            const [updatedItem, serviceError] = await itemStockService.updateItemStock(
+                parseInt(id), 
+                updateData,
+                req.user.id);
             if (serviceError) return handleErrorClient(res, 400, serviceError);
             
             handleSuccess(res, 200, "Item actualizado", updatedItem);

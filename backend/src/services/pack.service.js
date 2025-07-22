@@ -295,8 +295,11 @@ export const packService = {
       });
     }
 
-    // 🗑️ Eliminar el pack
+    const packItemRepo = AppDataSource.getRepository(PackItem);
+    await packItemRepo.delete({ pack: { id: pack.id } });
+
     await repo.remove(pack);
+
 
     return [{ id: pack.id, message: "Pack eliminado permanentemente" }, null];
   } catch (error) {
@@ -305,10 +308,11 @@ export const packService = {
   }
   },
 
-  async emptyTrash(userId) {
-  try {
-    const repo = AppDataSource.getRepository(Pack);
-    const movementRepo = AppDataSource.getRepository(InventoryMovement);
+async emptyTrash(userId) {
+  return await AppDataSource.transaction(async transactionalEntityManager => {
+    const repo = transactionalEntityManager.getRepository(Pack);
+    const packItemRepo = transactionalEntityManager.getRepository(PackItem);
+    const movementRepo = transactionalEntityManager.getRepository(InventoryMovement);
 
     const packsToDelete = await repo.find({
       where: { isActive: false },
@@ -333,14 +337,17 @@ export const packService = {
           ...createItemSnapshot(pack),
         });
       }
+
+      await packItemRepo.delete({ pack: { id: pack.id } });
     }
 
     await repo.remove(packsToDelete);
 
     return [packsToDelete.length, null];
-  } catch (error) {
+  }).catch(error => {
     console.error("Error en emptyTrash:", error);
     return [null, "Error al vaciar la papelera"];
-  }
-  },
+  });
+}
+
 };

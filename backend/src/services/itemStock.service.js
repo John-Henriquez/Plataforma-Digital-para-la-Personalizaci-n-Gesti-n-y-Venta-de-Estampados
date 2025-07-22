@@ -4,6 +4,7 @@ import ItemStock from "../entity/itemStock.entity.js";
 import InventoryMovement from "../entity/InventoryMovementSchema.js";
 import Pack from "../entity/pack.entity.js";
 import PackItem from "../entity/packItem.entity.js";
+import { deepEqual } from "../helpers/deepEqual.js";
 import { createItemSnapshot, generateInventoryReason } from "../helpers/inventory.helpers.js";
 
 import { Not } from "typeorm";
@@ -137,7 +138,7 @@ export const itemStockService = {
     });
 
     if (!item) {
-      return [null, "Item de inventario no encontrado"];
+      return [null, "Item no encontrado"];
     }
 
     const { updatedById } = updateData;
@@ -174,9 +175,29 @@ export const itemStockService = {
       }
     }
 
-    const originalQuantity = item.quantity;
-    const updatableFields = ["hexColor", "size", "quantity", "price", "images", "minStock", "isActive"];
-    updatableFields.forEach(field => {
+
+    // 1. Preparar cambios
+    const changes = {};
+    const trackableFields = [
+      "hexColor", "size", "quantity", "price", 
+      "images", "minStock", "isActive"
+    ];
+
+    trackableFields.forEach(field => {
+      if (updateData[field] !== undefined && !deepEqual(updateData[field], item[field])) {
+        changes[field] = {
+          oldValue: item[field],
+          newValue: updateData[field]
+        };
+      }
+    });
+
+    if (Object.keys(changes).length === 0) {
+      return [item, "No se detectaron cambios"];
+    }
+
+    // 2. Aplicar cambios
+    trackableFields.forEach(field => {
       if (updateData[field] !== undefined) {
         item[field] = updateData[field];
       }
@@ -184,35 +205,41 @@ export const itemStockService = {
 
     const updatedItem = await repo.save(item);
 
-    const { operation, reason } = generateInventoryReason("update");
-
-    if (updateData.quantity !== undefined && updateData.quantity !== originalQuantity) {
-      const diff = updateData.quantity - originalQuantity;
-      await movementRepo.save({
-        type: diff > 0 ? "entrada" : "salida",
-        quantity: Math.abs(diff),
-        itemStock: item,
-        createdBy: { id: userId }, 
-        operation,
-        reason,
-        ...createItemSnapshot(item),
-      });
-    } else if (userId) {
-      await movementRepo.save({
-        type: "ajuste", 
-        quantity: 0,
+    // 3. Registrar movimientos
+    const movementPromises = Object.keys(changes).map(async field => {
+      const { operation, reason } = generateInventoryReason("update", field);
+      
+      const movementData = {
+        type: field === "quantity" 
+          ? (changes[field].newValue > changes[field].oldValue ? "entrada" : "salida")
+          : "ajuste",
+        quantity: field === "quantity" 
+          ? Math.abs(changes.quantity.newValue - changes.quantity.oldValue) 
+          : 0,
         itemStock: item,
         createdBy: { id: userId },
         operation,
         reason,
-        ...createItemSnapshot(item),
-      });
-    }
+        changedField: field,
+        changes: { 
+          [field]: {
+            oldValue: changes[field].oldValue,
+            newValue: changes[field].newValue
+          }
+        },
+        ...createItemSnapshot(item)
+      };
+
+      return movementRepo.save(movementData);
+    });
+
+    await Promise.all(movementPromises);
+
     return [updatedItem, null];
-    } catch (error) {
-      console.error("Error en updateItemStock:", error.message, error.stack);
-      return [null, `Error al actualizar el item de inventario: ${error.message}`];
-    }
+  } catch (error) {
+    console.error("Error en updateItemStock:", error);
+    return [null, `Error al actualizar: ${error.message}`];
+  }
   },
 
   async deleteItemStock(id, userId) {

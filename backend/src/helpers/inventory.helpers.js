@@ -1,4 +1,4 @@
-export function generateInventoryReason(action) {
+export function generateInventoryReason(action, field) {
   const metadata = {
     create: {
       operation: "create",
@@ -9,8 +9,38 @@ export function generateInventoryReason(action) {
       reason: "Ajuste de inventario",
     },
     update: {
-      operation: "update",
-      reason: "Actualización de información del ítem",
+      quantity: {
+        operation: "update",
+        reason: "Ajuste de cantidad de stock"
+      },
+      price: {
+        operation: "update",
+        reason: "Actualización de precio"
+      },
+      hexColor: {
+        operation: "update",
+        reason: "Cambio de color"
+      },
+      size: {
+        operation: "update",
+        reason: "Modificación de talla"
+      },
+      images: {
+        operation: "update",
+        reason: "Actualización de imágenes"
+      },
+      minStock: {
+        operation: "update",
+        reason: "Ajuste de stock mínimo"
+      },
+      isActive: {
+        operation: "update",
+        reason: "Cambio de estado activo"
+      },
+      default: {
+        operation: "update",
+        reason: "Actualización de información del ítem"
+      }
     },
     deactivate: {
       operation: "deactivate",
@@ -38,7 +68,15 @@ export function generateInventoryReason(action) {
     },
   };
 
- const result = metadata[action] || {
+  if (action === "update") {
+    const fieldMeta = metadata.update[field] || metadata.update.default;
+    if (!fieldMeta?.operation) {
+      console.warn(`No se encontró metadata válida para el campo '${field}' en acción 'update'`);
+    }
+    return fieldMeta;
+  }
+
+  const result = metadata[action] || {
     operation: "unspecified",
     reason: "Movimiento generado automáticamente",
   };
