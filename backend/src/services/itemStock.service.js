@@ -132,6 +132,7 @@ export const itemStockService = {
     try {
       const repo = AppDataSource.getRepository(ItemStock);
       const movementRepo = AppDataSource.getRepository(InventoryMovement);
+      
       const item = await repo.findOne({ 
       where: { id },
       relations: ["itemType"]

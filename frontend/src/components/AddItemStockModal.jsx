@@ -29,7 +29,7 @@ const AddItemStockModal = ({ open, onClose, onCreated, itemTypes, editingStock }
   const { editItemStock } = useEditItemStock();
 
   useEffect(() => {
-    if (editingStock) {
+    if (open && editingStock) {
       const matchingType = itemTypes.find(t => t.id === editingStock.itemTypeId);
       setForm({
         itemTypeId: matchingType ? editingStock.itemTypeId : '',
@@ -43,7 +43,7 @@ const AddItemStockModal = ({ open, onClose, onCreated, itemTypes, editingStock }
     } else {
       setForm(DEFAULT_FORM);
     }
-  }, [editingStock, itemTypes]);
+  }, [open, editingStock, itemTypes]);
 
   useEffect(() => {
     setSelectedType(itemTypes.find(type => type.id === form.itemTypeId) || null);

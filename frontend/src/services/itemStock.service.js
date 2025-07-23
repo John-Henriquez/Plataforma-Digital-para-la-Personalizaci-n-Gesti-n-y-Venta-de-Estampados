@@ -37,13 +37,13 @@ export async function updateItemStock(id, updatedData) {
 export async function deleteItemStock(id) {
   try {
     const response = await axios.delete(`/item-stocks/${id}`);
-    return response.data;
+    return [response.data, null];
   } catch (error) {
     console.error('Error deleting item stock:', error);
-    throw {
+    return [null, {
       status: error.response?.status,
       message: error.response?.data?.message || error.message || 'Error desconocido',
-    };
+    }]
   }
 }
 

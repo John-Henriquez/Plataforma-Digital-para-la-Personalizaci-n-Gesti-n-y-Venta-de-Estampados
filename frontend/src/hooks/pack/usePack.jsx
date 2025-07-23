@@ -17,6 +17,10 @@ const usePack = () => {
       setLoading(true);
       setError(null);
       const data = await getPacks(filters);
+      if (data) {
+        console.log('📦 Datos de packs recibidos:', data); 
+      setPacks(data);
+    }
       setPacks(data);
     } catch (err) {
       console.error('Error fetching packs:', err);

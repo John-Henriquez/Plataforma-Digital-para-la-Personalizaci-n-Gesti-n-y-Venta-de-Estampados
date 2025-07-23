@@ -2,60 +2,61 @@ import React, { useEffect, useState, useContext, useMemo } from 'react';
 import {
   Box, Button, Grid, TextField, Paper, Typography,
   CircularProgress, Alert, MenuItem, InputAdornment,
-  FormControl, InputLabel, Select
+  FormControl, InputLabel, Select, Chip
 } from '@mui/material';
 import { Navigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
+import Modal from '@mui/material/Modal';
 
 import AddItemTypeModal from '../components/AddItemTypeModal.jsx';
 import AddItemStockModal from '../components/AddItemStockModal.jsx';
 import ItemTypeTrash from '../components/ItemTypeTrashModal.jsx';
 import ItemStockTrash from '../components/ItemStockTrashModal.jsx';
 import PackModal from '../components/PackModal.jsx';
-import usePack from '../hooks/pack/usePack.jsx';
+import InventoryMovementHistory from '../components/InventoryMovementHistory.jsx';
 
+import usePack from '../hooks/pack/usePack.jsx';
 import useItemStock from '../hooks/itemStock/useItemStock.jsx';
 import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock.jsx';
-
 import { useItemTypes } from '../hooks/itemType/useItemType.jsx';
 import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType.jsx';
 import { useDeletedItemTypes } from '../hooks/itemType/useDeletedItemType.jsx';
 import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType.jsx';
 import { useRestoreItemStock } from '../hooks/itemStock/useRestoreItemStock.jsx';
 import { useDeletedItemStock } from '../hooks/itemStock/useDeletedItemStock.jsx';
-import { COLOR_DICTIONARY } from '../data/colorDictionary';
-
-import { iconMap  } from '../data/iconCategories';
 
 import { AuthContext } from '../context/AuthContext.jsx';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
+
+import { COLOR_DICTIONARY } from '../data/colorDictionary';
+import { iconMap  } from '../data/iconCategories';
 import '../styles/pages/inventario.css';
 
-import InventoryMovementHistory from '../components/InventoryMovementHistory.jsx';
-import Modal from '@mui/material/Modal';
 
 const Inventario = () => {
+  //modales 
   const [openAddType, setOpenAddType] = useState(false);
-  const [editingType] = useState(null);
   const [openAddStock, setOpenAddStock] = useState(false);
-  const [editingStock, setEditingStock] = useState(null);
   const [openTrash, setOpenTrash] = useState(false);
   const [openStockTrash, setOpenStockTrash] = useState(false);
-
   const [openHistory, setOpenHistory] = useState(false);
   const [openPackModal, setOpenPackModal] = useState(false);
-  const [editingPack, setEditingPack] = useState(null);
 
-  const { deletedStock, fetchDeletedStock } = useDeletedItemStock();
+  //edicion
+  const [editingType] = useState(null);
+  const [editingStock, setEditingStock] = useState(null);
+  const [editingPack, setEditingPack] = useState(null);
 
   const { isAuthenticated, user } = useContext(AuthContext);
 
+  //hooks pack
   const{
     packs, 
     loading: packsLoading, 
     error: packsError, 
   } = usePack();
 
+  //hooks stock
   const { 
     itemStock, 
     loading: stockLoading, 
@@ -64,27 +65,32 @@ const Inventario = () => {
     setFilters, 
     refetch: refetchStock 
   } = useItemStock();
+
+  const { deleteItemStock } = useDeleteItemStock();
+  const { deletedStock, fetchDeletedStock } = useDeletedItemStock();
+  const { restore } = useRestoreItemStock();
+
+  //hooks tipos
   const { 
     types: itemTypes, 
     fetchTypes, 
     loading: typesLoading, 
     error: typesError 
   } = useItemTypes();
+
+  const { removeType  } = useDeleteItemType();
   const { 
     deletedTypes, 
     fetchDeletedTypes, 
   } = useDeletedItemTypes();
-
-  const { deleteItemStock } = useDeleteItemStock();
-  const { removeType  } = useDeleteItemType();
   const { restoreType } = useRestoreItemType();
-  const { restore } = useRestoreItemStock();
-
-
+  
+  //carga inicial tipos
   useEffect(() => {
     fetchTypes(); 
   }, [fetchTypes]);
 
+  //filtros
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -93,18 +99,18 @@ const Inventario = () => {
     }));
   };
 
+  const initialFilters = {
+    color: '',
+    size: '',
+    typeId: '',
+    searchTerm: '',
+    stockStatus: ''
+  };
 
-  const colorOptions = useMemo(() => {
-    const usedHexColors = new Set(
-      itemStock
-        .filter(item => item.hexColor)  
-        .map(item => item.hexColor.toUpperCase()) 
-    );
-
-    return COLOR_DICTIONARY.filter(({ hex }) => 
-      usedHexColors.has(hex.toUpperCase())
-    );
-  }, [itemStock]);
+  const resetFilters = () => {
+    setFilters(initialFilters);
+    refetchStock();
+  };
 
   const filteredStock = useMemo(() => {
     if (!itemStock) return [];
@@ -145,44 +151,60 @@ const Inventario = () => {
     });
   }, [itemStock, filters]);
 
-    if (!isAuthenticated || user?.rol !== 'administrador') {
-    return <Navigate to="/auth" />;
-  }
-  
+  //stock
+  const handleDeleteStock = async (id) => {
+    const result = await deleteDataAlert();
 
-  const initialFilters = {
-    color: '',
-    size: '',
-    typeId: '',
-    searchTerm: '',
-    stockStatus: ''
-  };
-  const resetFilters = () => {
-    setFilters(initialFilters);
-    refetchStock();
-  };
-  
-const handleDeleteStock = async (id) => {
-  const result = await deleteDataAlert();
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-  try {
-    await deleteItemStock(id); // ✔️ si lanza, lo atrapamos abajo
-    showSuccessAlert('Eliminado', 'El item fue eliminado correctamente');
-    refetchStock();
-  } catch (error) {
-    console.error('❌ Error al eliminar:', error);
-    if (error.status === 409) {
-      showErrorAlert('No se puede eliminar', error.message);
+    const [res, err] = await deleteItemStock(id);
+    console.log("resultado:", [res, err]);
+
+    if (res && res.status === "Success") {
+      showSuccessAlert('Eliminado', res.message || 'El item fue eliminado correctamente');
+      refetchStock();
+    } else if (err) {
+      const { status, message } = err;
+
+      if (status === 409) {
+        showErrorAlert('No se puede eliminar', message || 'Este ítem está siendo utilizado en uno o más paquetes');
+      } else if (status === 404) {
+        showErrorAlert('No encontrado', message || 'El ítem no existe o ya fue eliminado');
+      } else {
+        showErrorAlert('Error', message || `Error inesperado (${status})`);
+      }
     } else {
-      showErrorAlert('Error inesperado', error.message || 'Algo salió mal');
+      // Caso raro: ni éxito ni error claro
+      showErrorAlert('Error', 'No se pudo determinar el resultado de la operación');
     }
-  }
-};
+  };
+  const handleRestoreStock = async (id) => {
+    try {
+      const stockItem = deletedStock.find(item => item.id === id);
+      if (!stockItem || !stockItem.itemType?.isActive) {
+        showErrorAlert(
+          'No se puede restaurar',
+          'No puedes restaurar este stock porque su tipo de ítem aún está inactivo.'
+        );
+        return;
+      }
 
+      await restore(id);
+      showSuccessAlert('Restaurado', 'El stock fue restaurado correctamente');
 
+      await Promise.all([
+        refetchStock(),
+        fetchDeletedStock(),
+        fetchTypes(),
+      ]);
 
+      setOpenStockTrash(false);
+    } catch (error) {
+      showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
+    }
+  };
 
+  //tipos
   const handleDeleteType = async (id) => {
     const result = await deleteDataAlert();
     if (result.isConfirmed) {
@@ -218,32 +240,7 @@ const handleDeleteStock = async (id) => {
     }
   };
 
-  const handleRestoreStock = async (id) => {
-    try {
-      const stockItem = deletedStock.find(item => item.id === id);
-      if (!stockItem || !stockItem.itemType?.isActive) {
-        showErrorAlert(
-          'No se puede restaurar',
-          'No puedes restaurar este stock porque su tipo de ítem aún está inactivo.'
-        );
-        return;
-      }
-
-      await restore(id);
-      showSuccessAlert('Restaurado', 'El stock fue restaurado correctamente');
-
-      await Promise.all([
-        refetchStock(),
-        fetchDeletedStock(),
-        fetchTypes(),
-      ]);
-
-      setOpenStockTrash(false);
-    } catch (error) {
-      showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
-    }
-  };
-
+  //modales
   const handleOpenTrashModal = async () => {
     try {
       await fetchDeletedTypes(); 
@@ -252,6 +249,7 @@ const handleDeleteStock = async (id) => {
       console.error('[Inventario] Error al obtener eliminados:', err);
     }
   };
+
   const handleCloseTrash = () => {
     setOpenTrash(false);
   };
@@ -269,18 +267,36 @@ const handleDeleteStock = async (id) => {
     setOpenStockTrash(false);
   };
 
+  //colores 
+  const colorOptions = useMemo(() => {
+    const usedHexColors = new Set(
+      itemStock
+        .filter(item => item.hexColor)  
+        .map(item => item.hexColor.toUpperCase()) 
+    );
+
+    return COLOR_DICTIONARY.filter(({ hex }) => 
+      usedHexColors.has(hex.toUpperCase())
+    );
+  }, [itemStock]);
+
+    if (!isAuthenticated || user?.rol !== 'administrador') {
+    return <Navigate to="/auth" />;
+  }
+
   return (
     <Box className="inventory-container">
       <Typography className="inventory-title" variant="h4" gutterBottom>
         Gestión de Inventario
       </Typography>
-
+      {/* Alertas de error */}
       {(stockError || typesError || packsError) && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {stockError || typesError}
         </Alert>
       )}
 
+      {/* Sección de Filtros */}
       <Paper className="inventory-paper">
         <Typography variant="h6" sx={{ mb: 2 }}>Filtros de Búsqueda</Typography>
         <Grid container spacing={2}>
@@ -300,6 +316,8 @@ const handleDeleteStock = async (id) => {
               }}
             />
           </Grid>
+
+          {/* Filtro por tipo */}
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               select
@@ -317,6 +335,8 @@ const handleDeleteStock = async (id) => {
               ))}
             </TextField>
           </Grid>
+
+          {/* Filtro por color */}
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
               <InputLabel>Color</InputLabel>
@@ -348,6 +368,8 @@ const handleDeleteStock = async (id) => {
               </Select>
             </FormControl>
           </Grid>
+
+          {/* Filtro por talla */}
           <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth>
                 <InputLabel>Talla</InputLabel>
@@ -366,6 +388,8 @@ const handleDeleteStock = async (id) => {
                 </Select>
               </FormControl>
           </Grid>
+
+          {/* Filtro por estado de stock */}
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
               <InputLabel>Estado stock</InputLabel>
@@ -381,6 +405,8 @@ const handleDeleteStock = async (id) => {
               </Select>
             </FormControl>
           </Grid>
+
+          {/* Botón para limpiar filtros */}
           <Grid item xs={6} sm={3} md={1.5}>
             <Button
               variant="outlined"
@@ -421,6 +447,8 @@ const handleDeleteStock = async (id) => {
                 Papelera
               </Button>
             </Box>
+
+            {/* Listado de tipos */}
             <ul className="inventory-list">
               {itemTypes.map((type) => (
                 <li key={type.id} className="inventory-list-item">
@@ -468,26 +496,16 @@ const handleDeleteStock = async (id) => {
               ))}
             </ul>
           </Paper>
-        {/* Sección de Inventario */}
-        <Paper className="inventory-paper">
-          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-            <Button
-              variant="contained"
-              className="inventory-button inventory-button--secondary"
-              onClick={() => setOpenAddStock(true)}
+
+          {/* Sección de Inventario */}
+          <Paper className="inventory-paper">
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Button
+                variant="contained"
+                className="inventory-button inventory-button--secondary"
+                onClick={() => setOpenAddStock(true)}
             >
               Nuevo Stock
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              className="inventory-button inventory-button--contained"
-              onClick={() => {
-                setEditingPack(null);
-                setOpenPackModal(true);
-              }}
-            >
-              Nuevo Pack
             </Button>
             <Button
               variant="outlined"
@@ -505,10 +523,10 @@ const handleDeleteStock = async (id) => {
             >
               Historial
             </Button>
-
           </Box>
           <Typography variant="h5">Inventario</Typography>
-
+          
+          {/* Listado de items por tipo */}
           {itemTypes.map((type) => {
             const stockItems = filteredStock.filter(item => item.itemType?.id === type.id);
 
@@ -549,6 +567,7 @@ const handleDeleteStock = async (id) => {
                           <Typography className="inventory-item-details">
                             Precio: ${item.price.toLocaleString()}
                           </Typography>
+
                           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
                             <Button
                               variant="outlined"
@@ -582,6 +601,8 @@ const handleDeleteStock = async (id) => {
             );
           })}
         </Paper>
+
+        {/* Sección de Packs */}
         <Paper className="inventory-paper" sx={{ mt: 3 }}>
           <Box sx={{ 
               display: 'flex', 
@@ -592,40 +613,125 @@ const handleDeleteStock = async (id) => {
               gap: 2
             }}>
               <Typography variant="h5">Packs ({packs.length})</Typography>
-                            
-              {/* Filtros y botones para packs */}
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                              {/* ... controles de filtrado para packs ... */}
-                            </Box>
-                          </Box>
 
-                          {/* Listado de packs */}
-                          {packsLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                              <CircularProgress />
-                            </Box>
-                          ) : packs.length > 0 ? (
-                            <Grid container spacing={2}>
-                              {packs.map((pack) => (
-                                <Grid item xs={12} sm={6} md={4} key={pack.id}>
-                                  {/* Tarjeta individual de pack */}
-                                <Paper className="inventory-item-card" sx={{ p: 2 }}>
-                                  {/* Contenido del pack */}
-                                <Typography variant="h6">{pack.name}</Typography>
-                                  {/* ... más detalles del pack ... */}
-                              </Paper>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    ) : (
-                  <Typography variant="body1" sx={{ textAlign: 'center', py: 3 }}>
-                    No se encontraron packs
-                </Typography>
-              )}
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  className="inventory-button"
+                  onClick={() => {
+                    setEditingPack(null);
+                    setOpenPackModal(true);
+                  }}
+                >
+                  Nuevo Pack
+                </Button>
+              </Box>
+          </Box>
+
+          {packsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : packs.length > 0 ? (
+            <Grid container spacing={2}>
+              {packs.map((pack) => (
+                <Grid item xs={12} sm={6} md={4} key={pack.id}>
+                  <Paper className="inventory-item-card" sx={{ p: 2 }}>
+
+                    {/* Encabezado del pack */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="h6">{pack.name}</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Chip 
+                          label={pack.isActive ? "Activo" : "Inactivo"} 
+                          color={pack.isActive ? "success" : "error"} 
+                          size="small"
+                        />
+                        {pack.autoCalculatePrice && (
+                          <Chip label="Auto" color="info" size="small" />
+                        )}
+                      </Box>
+                    </Box>
+
+                    {/* Precio y descuento */}
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body1" fontWeight="bold">
+                        ${pack.price?.toLocaleString()}
+                      </Typography>
+                      {pack.discount && pack.discount > 0 && (
+                        <Typography variant="body2" color="text.secondary">
+                          Incluye {pack.discount * 100}% de descuento
+                        </Typography>
+                      )}
+                    </Box>
+
+                    {/* Items del pack */}
+                    <Box sx={{ mt: 2, flexGrow: 1 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>Contiene:</Typography>
+                      {pack.packItems?.map((packItem, index) => {
+                        const stock = packItem.itemStock;
+                        const itemType = stock?.itemType;
+
+                        return (
+                          <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                            <Box sx={{
+                              width: 14, 
+                              height: 14, 
+                              borderRadius: '50%',
+                              backgroundColor: stock?.hexColor || '#ccc', 
+                              mr: 1, 
+                              border: '1px solid #ddd'
+                            }} />
+                            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                              {itemType?.name || 'Item desconocido'} ({packItem.quantity}x)
+                            </Typography>
+                            {stock?.size && (
+                              <Typography variant="body2" color="text.secondary">
+                                {stock.size}
+                              </Typography>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+
+                    {/* Botones de acción */}
+                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        onClick={() => {
+                          setEditingPack(pack);
+                          setOpenPackModal(true);
+                        }}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        fullWidth
+                        onClick={() => handleDeletePack(pack.id)}
+                      >
+                        Eliminar
+                      </Button>
+                    </Box>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Typography variant="body1" sx={{ textAlign: 'center', py: 3 }}>
+                No se encontraron packs
+              </Typography>
+            )}
           </Paper>
         </>
       )}
-      
+      {/* modales*/}
       <AddItemTypeModal
         open={openAddType}
         onClose={() => setOpenAddType(false)}
@@ -653,13 +759,13 @@ const handleDeleteStock = async (id) => {
       />
       <AddItemStockModal
         open={openAddStock}
-          onClose={() => {
-          setOpenAddStock(false);
+        onClose={() => setOpenAddStock(false)}
+        onCreated={() => {
+          refetchStock();
           setEditingStock(null);
         }}
-        onCreated={refetchStock}
         itemTypes={itemTypes}
-        editingStock={editingStock}
+        editingStock={openAddStock ? editingStock : null}
       />
       <PackModal
         open={openPackModal}

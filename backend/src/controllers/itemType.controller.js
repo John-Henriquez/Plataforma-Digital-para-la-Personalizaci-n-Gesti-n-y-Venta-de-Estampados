@@ -177,8 +177,14 @@ export const itemTypeController = {
             const [result, error] = await itemTypeService.deleteItemType(id);
             if (error) {
                 console.error("Error en itemTypeService.deleteItemType:", error);
-                return handleErrorClient(res, 404, error);
+
+                const status = error.type === "CONFLICT" ? 409 
+                    : error.type === "NOT_FOUND" ? 404 
+                    : 400;
+
+                return handleErrorClient(res, status, error);
             }
+
 
             console.log("Tipo de ítem desactivado exitosamente:", id);
             handleSuccess(res, 200, "Tipo de ítem desactivado", result);

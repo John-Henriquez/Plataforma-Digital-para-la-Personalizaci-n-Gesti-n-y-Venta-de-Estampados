@@ -168,25 +168,19 @@ export const itemTypeService = {
                 }];
             }
 
+            const hasActiveStocks = itemType.stocks.some(stock => stock.isActive);
+            if (hasActiveStocks) {
+                return [null, {
+                    type: "CONFLICT",
+                    message: "No se puede desactivar el tipo de ítem porque tiene stock activo asociado",
+                    id
+                }];
+            }
+
             itemType.isActive = false;
             await itemTypeRepo.save(itemType);
 
-            const affectedStocks = [];
-
-            for (const stock of itemType.stocks) {
-                if (stock.isActive) {
-                    stock.isActive = false;
-                    stock.deletedAt = new Date();
-                    stock.deactivatedByItemType = true;
-                    affectedStocks.push(stock);
-                }
-            }
-
-            if (affectedStocks.length > 0) {
-                await itemStockRepo.save(affectedStocks);
-            }
-
-            return [{ id: parseInt(id), affectedStocks: affectedStocks.length }, null];
+            return [{ id: parseInt(id), affectedStocks: 0 }, null];
         } catch (error) {
             console.error("Error en deleteItemType [itemTypeService]:", error);
             return [null, {
