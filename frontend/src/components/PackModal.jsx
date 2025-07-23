@@ -23,7 +23,7 @@ const PackModal = ({ open, onClose, onCompleted, editingPack, currentUserRut, it
   const stocks = itemStock || [];
 
   const { create, loading: creating } = useCreatePack();
-  const { editPack, loading: editing } = useEditPack();
+  const {  edit: editPack, loading: editing } = useEditPack();
 
   const availableStocks = useMemo(() => stocks, [stocks]);
 
@@ -35,16 +35,25 @@ const PackModal = ({ open, onClose, onCompleted, editingPack, currentUserRut, it
       return;
     }
 
-    if (editingPack) {
+    if (editingPack && Array.isArray(editingPack.packItems)) {
       const initialStocks = editingPack.packItems.map(pi => ({
         itemStock: pi.itemStock,
         quantity: pi.quantity.toString()
       }));
-        setSelectedStocks(initialStocks);
-        console.log(`[PackModal] Editando pack "${editingPack.name}" con ${initialStocks.length} ítems`);
+      setSelectedStocks(initialStocks);
+
+      setForm({
+      name: editingPack.name || '',
+      description: editingPack.description || '',
+      discount: (editingPack.discount || 0) * 100,
+      isActive: editingPack.isActive ?? true
+    });
+
+      console.log(`[PackModal] Editando pack "${editingPack.name}" con ${initialStocks.length} ítems`);
     } else {
       console.log('[PackModal] Creando nuevo pack - formulario reiniciado');
     }
+
   }, [open, editingPack?.id]);
 
     const handleChange = e => {

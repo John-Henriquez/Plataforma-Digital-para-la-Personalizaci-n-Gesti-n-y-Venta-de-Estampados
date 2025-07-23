@@ -331,6 +331,7 @@ const Inventario = () => {
 
   const handleClosePackTrash = () => {
     setOpenPackTrash(false);
+    setEditingPack(null);
   };
 
   //colores 
@@ -686,7 +687,7 @@ const Inventario = () => {
                   color="success"
                   className="inventory-button"
                   onClick={() => {
-                    setEditingPack(null);
+                    setEditingPack(packs);
                     setOpenPackModal(true);
                   }}
                 >
@@ -858,6 +859,7 @@ const Inventario = () => {
         onClose={() => setOpenPackModal(false)}
         onCompleted={() => {
           setOpenPackModal(false);
+          refetch();
         }}
         editingPack={editingPack}
         currentUserRut={user?.rut}

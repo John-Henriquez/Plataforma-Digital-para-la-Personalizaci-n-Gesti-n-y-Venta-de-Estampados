@@ -34,6 +34,26 @@ export const packService = {
           return [null, `El ítem con ID ${itemData.itemStockId} no existe o está inactivo`];
         }
 
+        const requestedQty = itemData.quantity;
+        if (
+          typeof requestedQty !== "number" 
+          || !Number.isInteger(requestedQty) 
+          || requestedQty <= 0
+        ) {
+          return [null, `La cantidad para el ítem '${item.name || item.id}' debe ser un número entero positivo`];
+        }
+
+        if (requestedQty > item.stock) {
+          return [null, `Stock insuficiente para el ítem '${item.name 
+            || item.id}'. Disponible: ${item.stock}, requerido: ${requestedQty}`];
+        }
+
+
+        if (item.stock < requestedQty) {
+          return [null, `Stock insuficiente para el ítem '${item.name 
+          || item.id}'. Disponible: ${item.stock}, requerido: ${requestedQty}`];
+        }
+
         totalPrice += (item.price || 0) * (itemData.quantity || 1);
         validItems.push({ item, quantity: itemData.quantity || 1 });
       }
@@ -152,6 +172,27 @@ export const packService = {
         for (let itemData of updateData.items) {
           const item = await itemStockRepo.findOne({ where: { id: itemData.itemStockId } });
           if (!item) return [null, `El ítem con ID ${itemData.itemStockId} no existe`];
+
+           const requestedQty = itemData.quantity;
+
+            if (
+              typeof requestedQty !== "number" 
+              || !Number.isInteger(requestedQty) 
+              || requestedQty <= 0
+            ) {
+              return [null, `La cantidad para el ítem '${item.name || item.id}' debe ser un número entero positivo`];
+            }
+
+            if (requestedQty > item.stock) {
+              return [null, `Stock insuficiente para el ítem '${item.name 
+                || item.id}'. Disponible: ${item.stock}, requerido: ${requestedQty}`];
+            }
+
+
+            if (item.stock < requestedQty) {
+              return [null, `Stock insuficiente para el ítem '${item.name 
+              || item.id}'. Disponible: ${item.stock}, requerido: ${requestedQty}`];
+            }
 
           const newPackItem = packItemRepo.create({
             pack,
