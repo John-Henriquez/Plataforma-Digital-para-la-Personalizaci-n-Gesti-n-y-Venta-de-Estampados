@@ -13,17 +13,22 @@ import AddItemStockModal from '../components/AddItemStockModal.jsx';
 import ItemTypeTrash from '../components/ItemTypeTrashModal.jsx';
 import ItemStockTrash from '../components/ItemStockTrashModal.jsx';
 import PackModal from '../components/PackModal.jsx';
+import PackTrashModal from '../components/PackTrashModal.jsx';
 import InventoryMovementHistory from '../components/InventoryMovementHistory.jsx';
 
 import usePack from '../hooks/pack/usePack.jsx';
 import useItemStock from '../hooks/itemStock/useItemStock.jsx';
 import useDeleteItemStock from '../hooks/itemStock/useDeleteItemStock.jsx';
+import useDeletePack from '../hooks/pack/useDeletePack.jsx';
 import { useItemTypes } from '../hooks/itemType/useItemType.jsx';
 import { useDeleteItemType } from '../hooks/itemType/useDeleteItemType.jsx';
 import { useDeletedItemTypes } from '../hooks/itemType/useDeletedItemType.jsx';
 import { useRestoreItemType } from '../hooks/itemType/useRestoreItemType.jsx';
 import { useRestoreItemStock } from '../hooks/itemStock/useRestoreItemStock.jsx';
 import { useDeletedItemStock } from '../hooks/itemStock/useDeletedItemStock.jsx';
+import useRestorePack from '../hooks/pack/useRestorePack.jsx';
+import useDeletedPacks from '../hooks/pack/useDeletedPacks.jsx';
+
 
 import { AuthContext } from '../context/AuthContext.jsx';
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
@@ -41,6 +46,7 @@ const Inventario = () => {
   const [openStockTrash, setOpenStockTrash] = useState(false);
   const [openHistory, setOpenHistory] = useState(false);
   const [openPackModal, setOpenPackModal] = useState(false);
+  const [openPackTrash, setOpenPackTrash] = useState(false);
 
   //edicion
   const [editingType] = useState(null);
@@ -54,7 +60,13 @@ const Inventario = () => {
     packs, 
     loading: packsLoading, 
     error: packsError, 
+    refetch 
   } = usePack();
+  const { restore: restorePack } = useRestorePack();
+  const { deletedPacks, refetch: fetchDeletedPacks } = useDeletedPacks();
+
+  const { remove } = useDeletePack();
+
 
   //hooks stock
   const { 
@@ -174,7 +186,6 @@ const Inventario = () => {
         showErrorAlert('Error', message || `Error inesperado (${status})`);
       }
     } else {
-      // Caso raro: ni éxito ni error claro
       showErrorAlert('Error', 'No se pudo determinar el resultado de la operación');
     }
   };
@@ -239,6 +250,48 @@ const Inventario = () => {
       showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
     }
   };
+  //pack
+
+  const handleDeletePack = async (id) => {
+    const result = await deleteDataAlert();
+
+    if (!result.isConfirmed) return;
+
+    const [res, err] = await remove(id);
+    console.log("resultado delete pack:", [res, err]);
+
+    if (res && res.status === "Success") {
+      showSuccessAlert("Eliminado", res.message || "Pack eliminado correctamente");
+      refetch();
+    } else if (err) {
+      const { status, message } = err;
+
+      if (status === 409) {
+        showErrorAlert("No se puede eliminar", message || "Este pack contiene ítems que están en uso");
+      } else if (status === 404) {
+        showErrorAlert("No encontrado", message || "El pack ya fue eliminado o no existe");
+      } else {
+        showErrorAlert("Error", message || `Error inesperado (${status})`);
+      }
+    } else {
+      showErrorAlert("Error", "No se pudo determinar el resultado de la operación");
+    }
+  };
+
+    const handleRestorePack = async (id) => {
+  try {
+    await restorePack(id);
+    showSuccessAlert('Restaurado', 'El pack fue restaurado correctamente');
+    
+    await Promise.all([
+      refetch(),
+      fetchDeletedPacks(),
+    ]);
+      setOpenPackTrash(false);
+    } catch (error) {
+      showErrorAlert('Error al restaurar', error?.message || 'Ocurrió un error inesperado');
+    }
+  };
 
   //modales
   const handleOpenTrashModal = async () => {
@@ -265,6 +318,19 @@ const Inventario = () => {
 
   const handleCloseStockTrash = () => {
     setOpenStockTrash(false);
+  };
+
+    const handleOpenPackTrash = async () => {
+    try {
+      await fetchDeletedPacks();
+      setOpenPackTrash(true);
+    } catch (err) {
+      console.error('[Inventario] Error al obtener packs eliminados:', err);
+    }
+  };
+
+  const handleClosePackTrash = () => {
+    setOpenPackTrash(false);
   };
 
   //colores 
@@ -626,6 +692,14 @@ const Inventario = () => {
                 >
                   Nuevo Pack
                 </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  className="inventory-button"
+                  onClick={handleOpenPackTrash}
+                >
+                  Papelera Packs
+                </Button>
               </Box>
           </Box>
 
@@ -732,6 +806,18 @@ const Inventario = () => {
         </>
       )}
       {/* modales*/}
+      
+      <PackTrashModal
+        open={openPackTrash}
+        onClose={handleClosePackTrash}
+        deletedPacks={deletedPacks}
+        onRestore={handleRestorePack}
+        onDelete={handleDeletePack}
+        onRefresh={() => {
+          refetch();
+        }}
+      />
+      
       <AddItemTypeModal
         open={openAddType}
         onClose={() => setOpenAddType(false)}

@@ -33,12 +33,18 @@ export async function updatePack(id, updatedData) {
 export async function deletePack(id) {
   try {
     const response = await axios.delete(`/packs/${id}`);
-    return response.data;
+    return [response.data, null];
   } catch (error) {
-    console.error('Error deleting pack:', error);
-    throw error.response?.data || error.message;
+    return [
+      null,
+      {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+      },
+    ];
   }
 }
+
 
 export async function getDeletedPacks() {
   try {

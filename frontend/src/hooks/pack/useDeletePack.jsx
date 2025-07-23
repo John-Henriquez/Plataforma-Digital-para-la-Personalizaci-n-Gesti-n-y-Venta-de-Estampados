@@ -6,13 +6,16 @@ const useDeletePack = () => {
   const [error, setError] = useState(null);
 
   const remove = async (id) => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
-      await deletePack(id);
+      const [res, err] = await deletePack(id); 
+      if (err) setError(err);
+      return [res, err];
     } catch (err) {
       setError(err);
-      throw err;
+      return [null, err];
     } finally {
       setLoading(false);
     }
