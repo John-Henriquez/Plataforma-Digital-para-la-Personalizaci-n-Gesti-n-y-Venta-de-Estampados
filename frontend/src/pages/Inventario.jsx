@@ -687,7 +687,7 @@ const Inventario = () => {
                   color="success"
                   className="inventory-button"
                   onClick={() => {
-                    setEditingPack(packs);
+                    setEditingPack(null);
                     setOpenPackModal(true);
                   }}
                 >

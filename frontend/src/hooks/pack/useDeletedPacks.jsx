@@ -10,7 +10,6 @@ const useDeletedPacks = () => {
     try {
       setLoading(true);
       const packs = await getPacks({ isActive: false });
-      console.log("Packs eliminados obtenidos:", packs);
       setDeletedPacks(packs);
     } catch (err) {
       setError(err);

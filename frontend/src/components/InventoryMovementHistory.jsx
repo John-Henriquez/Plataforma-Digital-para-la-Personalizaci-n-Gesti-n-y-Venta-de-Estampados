@@ -11,6 +11,7 @@ const movementTypeLabels = {
   ajuste: 'Ajuste',
 };
 
+
 const InventoryMovementHistory = () => {
   const {
     movements,
@@ -23,6 +24,42 @@ const InventoryMovementHistory = () => {
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
+  console.group('📦 InventoryMovementHistory Debug');
+  console.log('Movements:', movements);
+  console.log('Totals:', totals);
+  console.groupEnd();
+
+const getBorderColorByReason = (mov) => {
+  const reason = mov.reason?.toLowerCase() || '';
+
+  // Caso especial: Ajustes de cantidad registrados como salidas/entradas
+  if ((mov.type === 'salida' || mov.type === 'entrada') && 
+      reason.includes('ajuste de cantidad')) {
+    return '#2196F3'; // Forzar color azul para ajustes de cantidad
+  }
+
+  // Lógica normal de colores
+  if (reason.includes('eliminación permanente')) return '#D32F2F';
+  if (reason.includes('desactivación lógica')) return '#FF9800';
+  if (reason.includes('reactivación')) return '#4CAF50';
+  if (reason.includes('ajuste de cantidad') || reason.includes('stock mínimo')) 
+    return '#2196F3';
+  if (reason.includes('actualización de precio')) return '#03A9F4';
+  if (reason.includes('cambio de color')) return '#BA68C8';
+  if (reason.includes('modificación de talla')) return '#9575CD';
+  if (reason.includes('actualización de imágenes')) return '#7986CB';
+  if (reason.includes('ajuste de stock mínimo')) return '#009688';
+  if (reason.includes('cambio de estado activo')) return '#90A4AE';
+  if (reason.includes('eliminación masiva')) return '#B71C1C';
+
+  // Tipos básicos de movimiento
+  if (mov.type === 'entrada') return '#4CAF50';
+  if (mov.type === 'salida') return '#F44336';
+  if (mov.type === 'ajuste') return '#2196F3';
+
+  return '#9E9E9E'; // fallback
+};
+
 
   return (
     <Box className="modal">
@@ -104,18 +141,36 @@ const InventoryMovementHistory = () => {
                 p: 2,
                 mb: 1,
                 backgroundColor: '#f9f9f9',
-                borderLeft: `6px solid ${
-                  mov.type === 'entrada' ? '#4caf50' :
-                  mov.type === 'salida' ? '#f44336' : '#2196f3'
-                }`
+                borderLeft: `6px solid ${getBorderColorByReason(mov)}`
               }}
             >
-              <Typography variant="subtitle2">
-                {new Date(mov.createdAt).toLocaleString()} — {movementTypeLabels[mov.type]} de {mov.quantity} unidades
-              </Typography>
+            <Typography variant="subtitle2">
+              {new Date(mov.createdAt).toLocaleString()} —{' '}
+              {(mov.type === 'ajuste' && mov.quantity === 0 && mov.reason)
+                ? mov.reason
+                : `${movementTypeLabels[mov.type]} de ${mov.quantity} unidades`}
+            </Typography>
               {mov.snapshotItemName && (
                 <Typography variant="body2">
-                  Producto: <strong>{mov.snapshotItemName}</strong> — {mov.snapshotItemSize || ''} — {mov.snapshotItemColor || ''}
+                  Producto: <strong>{mov.snapshotItemName}</strong> — {mov.snapshotItemSize || ''}
+                  {mov.snapshotItemColor && (
+                    <>
+                      {' '}
+                      — <span style={{
+                        display: 'inline-block',
+                        width: '14px',
+                        height: '14px',
+                        backgroundColor: mov.snapshotItemColor,
+                        border: '1px solid #ccc',
+                        borderRadius: '3px',
+                        marginLeft: '4px',
+                        verticalAlign: 'middle'
+                      }} title={mov.snapshotItemColor} />
+                      <span style={{ marginLeft: '4px', fontSize: '0.85em', color: '#555' }}>
+                        {mov.snapshotItemColor}
+                      </span>
+                    </>
+                  )}
                 </Typography>
               )}
                 {mov.reason && (
@@ -124,7 +179,7 @@ const InventoryMovementHistory = () => {
                   </Typography>
                 )}
                 <Typography variant="caption" color="text.secondary">
-                  Por: {mov.createdBy?.username || 'Desconocido'}
+                  Por: {mov.createdBy?.nombreCompleto || 'Desconocido'}
                 </Typography>
               </Paper>
             ))}

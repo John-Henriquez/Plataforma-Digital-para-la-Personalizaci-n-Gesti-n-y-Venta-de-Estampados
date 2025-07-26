@@ -211,9 +211,7 @@ export const itemStockService = {
       const { operation, reason } = generateInventoryReason("update", field);
       
       const movementData = {
-        type: field === "quantity" 
-          ? (changes[field].newValue > changes[field].oldValue ? "entrada" : "salida")
-          : "ajuste",
+        type: "ajuste",
         quantity: field === "quantity" 
           ? Math.abs(changes.quantity.newValue - changes.quantity.oldValue) 
           : 0,

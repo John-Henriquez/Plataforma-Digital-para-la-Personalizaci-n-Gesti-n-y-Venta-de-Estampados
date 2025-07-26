@@ -81,6 +81,11 @@ const InventoryMovementSchema = new EntitySchema({
         from: (value) => parseFloat(value)
       }
     },
+    snapshotPackName: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    }
   },
   relations: {
     itemStock: {
@@ -92,6 +97,15 @@ const InventoryMovementSchema = new EntitySchema({
       },
       nullable: true,
       onDelete: "SET NULL",
+    },
+    pack: {
+      type: "many-to-one",
+      target: "Pack",
+      joinColumn: { 
+        name: "pack_id",
+        referencedColumnName: "id"
+      },
+      nullable: true,
     },
     createdBy: {
       type: "many-to-one",
@@ -111,7 +125,7 @@ const InventoryMovementSchema = new EntitySchema({
     {
       name: "IDX_MOVEMENT_TYPE",
       columns: ["type"]
-    }
+    },
   ]
 });
 

@@ -1,4 +1,5 @@
 export function deepEqual(a, b) {
+
   if (a === b) return true;
 
   if (Array.isArray(a) && Array.isArray(b)) {
@@ -12,7 +13,9 @@ export function deepEqual(a, b) {
     
     if (keysA.length !== keysB.length) return false;
     
-    return keysA.every(key => deepEqual(a[key], b[key]));
+        return keysA.every(key => 
+      Object.prototype.hasOwnProperty.call(b, key) && deepEqual(a[key], b[key])
+    );
   }
 
   return false;
