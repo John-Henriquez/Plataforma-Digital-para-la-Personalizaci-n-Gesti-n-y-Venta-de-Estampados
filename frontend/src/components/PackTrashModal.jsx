@@ -17,12 +17,12 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import CloseIcon from '@mui/icons-material/Close';
 
 import { deleteDataAlert, showSuccessAlert, showErrorAlert } from '../helpers/sweetAlert';
-import useEmptyDeletedPacks from '../hooks/pack/useDeletedPacks.jsx';
+import useEmptyDeletedPacks from '../hooks/pack/useEmptyDeletedPacks.jsx';
 import useForceDeletePack from '../hooks/pack/useForceDeletePack.jsx';
 import './../styles/components/trashModal.css';
 
 const PackTrashModal = ({ open, onClose, deletedPacks, onRestore, onRefresh }) => {
-  const { empty, loading: emptyingTrash } = useEmptyDeletedPacks();
+  const { emptyTrash, loading: emptyingTrash } = useEmptyDeletedPacks();
   const { forceDelete, loading: deleting } = useForceDeletePack();
 
   const handleEmptyTrash = async () => {
@@ -33,9 +33,11 @@ const PackTrashModal = ({ open, onClose, deletedPacks, onRestore, onRefresh }) =
 
     if (result.isConfirmed) {
       try {
-        await empty();
+        await emptyTrash();
         showSuccessAlert('Papelera vaciada', 'Todos los packs han sido eliminados permanentemente.');
-        onRefresh();
+        if (onRefresh) {
+          await onRefresh(); 
+        }
       } catch (err) {
         console.error('[handleEmptyTrash] Error:', err);
         showErrorAlert('Error al vaciar', 'Ocurrió un problema al vaciar la papelera.');

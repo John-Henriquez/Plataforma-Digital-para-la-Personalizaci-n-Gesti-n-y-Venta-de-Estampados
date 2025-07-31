@@ -183,7 +183,6 @@ const PackModal = ({ open, onClose, onCompleted, editingPack, currentUserRut, it
           <Box display="flex" flexWrap="wrap" gap={2} maxHeight={300} overflow="auto">
             {availableStocks.map(stock => {
               const selected = selectedStocks.find(s => s.itemStock.id === stock.id);
-              const label = `${stock.itemType?.name || ''} – ${stock.hexColor || ''}${stock.size ? ` – ${stock.size}` : ''}`;
               const isSelected = !!selected;
 
               return (
@@ -204,35 +203,63 @@ const PackModal = ({ open, onClose, onCompleted, editingPack, currentUserRut, it
                     backgroundColor: isSelected ? '#e3f2fd' : 'transparent',
                   }}
                 >
-                  <Typography variant="body2" fontWeight={500}>{label}</Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    Precio: ${stock.price?.toFixed(0) || 0}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
+                    <Typography variant="body2" fontWeight={500}>
+                      {stock.itemType?.name || ''}{stock.size ? ` – ${stock.size}` : ''}
+                    </Typography>
+
+                    {/* Color swatch */}
+                    {stock.hexColor && (
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '4px',
+                          backgroundColor: stock.hexColor,
+                          border: '1px solid #999',
+                          mt: 0.5
+                        }}
+                      />
+                    )}
+
+                    <Typography variant="caption" color="textSecondary">
+                      Precio: ${stock.price?.toFixed(0) || 0}
+                    </Typography>
+                  </Box>
+                  );
+                })}
+              </Box>
 
           {selectedStocks.map(s => (
-            <Box key={s.itemStock.id} display="flex" alignItems="center" gap={1} mt={1}>
-              <Typography flexGrow={1}>
-                {`${s.itemStock.itemType.name} – ${s.itemStock.hexColor}` +
-                  (s.itemStock.size ? ` – ${s.itemStock.size}` : '')
-                }
+          <Box key={s.itemStock.id} display="flex" alignItems="center" gap={1} mt={1}>
+            <Box flexGrow={1} display="flex" alignItems="center" gap={1}>
+              <Typography variant="body2">
+                {s.itemStock.itemType.name}{s.itemStock.size ? ` – ${s.itemStock.size}` : ''}
               </Typography>
-              <TextField
-                label="Cantidad"
-                type="number"
-                size="small"
-                value={s.quantity}
-                onChange={e => handleStockQty(s.itemStock.id, e.target.value)}
-                style={{ width: 100 }}
-                inputProps={{ min: 1 }}
-              />
-              <IconButton onClick={() => handleRemoveStock(s.itemStock.id)}>
-                <DeleteIcon />
-              </IconButton>
+              {s.itemStock.hexColor && (
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '4px',
+                    backgroundColor: s.itemStock.hexColor,
+                    border: '1px solid #999'
+                  }}
+                />
+              )}
             </Box>
+            <TextField
+              label="Cantidad"
+              type="number"
+              size="small"
+              value={s.quantity}
+              onChange={e => handleStockQty(s.itemStock.id, e.target.value)}
+              style={{ width: 100 }}
+              inputProps={{ min: 1 }}
+            />
+            <IconButton onClick={() => handleRemoveStock(s.itemStock.id)}>
+              <DeleteIcon />
+            </IconButton>
+          </Box>
           ))}
 
           {selectedStocks.length > 0 && (

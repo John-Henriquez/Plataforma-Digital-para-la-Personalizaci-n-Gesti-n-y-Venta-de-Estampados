@@ -393,40 +393,36 @@ export const packService = {
 
       const { operation, reason } = generateInventoryReason("delete");
 
-    const totalQuantity = pack.packItems.reduce((sum, pi) => sum + (pi.quantity || 0), 0);
+      const totalQuantity = pack.packItems.reduce((sum, pi) => sum + (pi.quantity || 0), 0);
 
-    const itemsDetails = pack.packItems.map(pi => ({
-      id: pi.itemStock.id,
-      name: pi.itemStock.itemType?.name || `Ítem ${pi.itemStock.id}`,
-      quantity: pi.quantity,
-      color: pi.itemStock.hexColor,
-      size: pi.itemStock.size,
-      price: pi.itemStock.price,
-      snapshot: createItemSnapshot(pi.itemStock)
-    }));
+      const itemsDetails = pack.packItems.map(pi => ({
+        id: pi.itemStock.id,
+        name: pi.itemStock.itemType?.name || `Ítem ${pi.itemStock.id}`,
+        quantity: pi.quantity,
+        color: pi.itemStock.hexColor,
+        size: pi.itemStock.size,
+        price: pi.itemStock.price,
+        snapshot: createItemSnapshot(pi.itemStock)
+      }));
 
-    // Registrar un SOLO movimiento consolidado
-    await movementRepo.save({
-      type: "ajuste",
-      operation,
-      reason,
-      quantity: totalQuantity,
-      pack: pack,
-      createdBy: { id: userId },
-      changes: {
-        items: itemsDetails,
-      },
-      snapshotPackName: pack.name,
-      snapshotItemName: `Pack: ${pack.name}`,
-      snapshotItemSize: "N/A",
-      snapshotPrice: pack.price || 0,
-    });
+      await movementRepo.save({
+        type: "ajuste",
+        operation,
+        reason,
+        quantity: totalQuantity,
+        pack: pack,
+        createdBy: { id: userId },
+        changes: {
+          items: itemsDetails,
+        },
+        snapshotPackName: pack.name,
+        snapshotItemName: `Pack: ${pack.name}`,
+        snapshotItemSize: "N/A",
+        snapshotPrice: pack.price || 0,
+      });
 
-      await movementRepo.delete({ pack: { id: pack.id } });
       await packItemRepo.delete({ pack: { id: pack.id } });
-
       await repo.remove(pack);
-
 
       return [{ id: pack.id, message: "Pack eliminado permanentemente" }, null];
     } catch (error) {
@@ -443,7 +439,7 @@ export const packService = {
 
       const packsToDelete = await repo.find({
         where: { isActive: false },
-        relations: ["packItems", "packItems.itemStock"],
+        relations: ["packItems", "packItems.itemStock", "packItems.itemStock.itemType"],
       });
 
       if (!packsToDelete.length) {
@@ -453,17 +449,33 @@ export const packService = {
       const { operation, reason } = generateInventoryReason("purge");
 
       for (const pack of packsToDelete) {
-        for (const packItem of pack.packItems) {
-          await movementRepo.save({
-            type: "ajuste",
-            operation,
-            reason,
-            quantity: packItem.quantity || 1,
-            itemStock: packItem.itemStock,
-            createdBy: { id: userId },
-            ...createItemSnapshot(pack),
-          });
-        }
+        const itemsDetails = pack.packItems.map(pi => ({
+          id: pi.itemStock.id,
+          name: pi.itemStock.itemType?.name || `Ítem ${pi.itemStock.id}`,
+          quantity: pi.quantity,
+          color: pi.itemStock.hexColor,
+          size: pi.itemStock.size,
+          price: pi.itemStock.price,
+          snapshot: createItemSnapshot(pi.itemStock)
+        }));
+
+        const totalQuantity = pack.packItems.reduce((sum, pi) => sum + (pi.quantity || 0), 0);
+
+        await movementRepo.save({
+          type: "ajuste",
+          operation,
+          reason,
+          quantity: totalQuantity,
+          pack: pack,
+          createdBy: { id: userId },
+          changes: {
+            items: itemsDetails,
+          },
+          snapshotPackName: pack.name,
+          snapshotItemName: `Pack: ${pack.name}`,
+          snapshotItemSize: "N/A",
+          snapshotPrice: pack.price || 0,
+        });
 
         await packItemRepo.delete({ pack: { id: pack.id } });
       }
@@ -476,5 +488,4 @@ export const packService = {
       return [null, "Error al vaciar la papelera"];
     });
   }
-
 };

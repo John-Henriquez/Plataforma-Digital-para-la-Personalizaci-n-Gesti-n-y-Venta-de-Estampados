@@ -814,9 +814,7 @@ const Inventario = () => {
         deletedPacks={deletedPacks}
         onRestore={handleRestorePack}
         onDelete={handleDeletePack}
-        onRefresh={() => {
-          refetch();
-        }}
+        onRefresh={fetchDeletedPacks}
       />
       
       <AddItemTypeModal

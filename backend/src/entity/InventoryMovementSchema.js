@@ -106,6 +106,7 @@ const InventoryMovementSchema = new EntitySchema({
         referencedColumnName: "id"
       },
       nullable: true,
+      onDelete: "SET NULL",
     },
     createdBy: {
       type: "many-to-one",

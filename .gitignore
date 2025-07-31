@@ -1,0 +1,8 @@
+# Variables de entorno
+.env
+
+# Node modules (si usas Node.js)
+node_modules/
+
+# Archivos de logs
+*.log
