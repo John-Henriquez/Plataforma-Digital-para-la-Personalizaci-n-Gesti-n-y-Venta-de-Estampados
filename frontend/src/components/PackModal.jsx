@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Checkbox, FormControlLabel, Box, IconButton, Typography
+  Button, TextField, Box, IconButton, Typography
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 
@@ -163,16 +163,6 @@ const PackModal = ({ open, onClose, onCompleted, editingPack, currentUserRut, it
               onChange={handleChange}
               inputProps={{ min: 0, max: 100, step: 1 }}
               helperText="Ej: 20 = 20% de descuento"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  name="isActive"
-                  checked={form.isActive}
-                  onChange={handleChange}
-                />
-              }
-              label="Activo"
             />
           </Box>
 

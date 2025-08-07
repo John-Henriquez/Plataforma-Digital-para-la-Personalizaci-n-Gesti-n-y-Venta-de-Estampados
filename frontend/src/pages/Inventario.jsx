@@ -2,7 +2,8 @@ import React, { useEffect, useState, useContext, useMemo } from 'react';
 import {
   Box, Button, Grid, TextField, Paper, Typography,
   CircularProgress, Alert, MenuItem, InputAdornment,
-  FormControl, InputLabel, Select, Chip
+  FormControl, InputLabel, Select, Chip, TableBody,
+  TableCell, TableContainer, TableHead, TableRow, Table
 } from '@mui/material';
 import { Navigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -565,108 +566,101 @@ const Inventario = () => {
           </Paper>
 
           {/* Sección de Inventario */}
-          <Paper className="inventory-paper">
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-              <Button
-                variant="contained"
-                className="inventory-button inventory-button--secondary"
-                onClick={() => setOpenAddStock(true)}
-            >
+        <Paper className="inventory-paper">
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <Button variant="contained" className="inventory-button inventory-button--secondary" onClick={() => setOpenAddStock(true)}>
               Nuevo Stock
             </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              className="inventory-button inventory-button--outlined"
-              onClick={handleOpenStockTrashModal}
-            >
+            <Button variant="outlined" color="secondary" className="inventory-button inventory-button--outlined" onClick={handleOpenStockTrashModal}>
               Papelera Stock
             </Button>
-            <Button
-              variant="outlined"
-              color="info"
-              className="inventory-button inventory-button--outlined"
-              onClick={() => setOpenHistory(true)}
-            >
+            <Button variant="outlined" color="info" className="inventory-button inventory-button--outlined" onClick={() => setOpenHistory(true)}>
               Historial
             </Button>
           </Box>
+
           <Typography variant="h5">Inventario</Typography>
-          
-          {/* Listado de items por tipo */}
-          {itemTypes.map((type) => {
-            const stockItems = filteredStock.filter(item => item.itemType?.id === type.id);
 
-            return (
-              <Box key={type.id} sx={{ mt: 3 }}>
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  {type.iconName && iconMap[type.iconName] && (
-                    <Box sx={{ display: 'inline-flex', alignItems: 'center', mr: 1 }}>
-                      {React.createElement(iconMap[type.iconName], { size: 20 })}
-                    </Box>
-                  )}
-                  {type.name}
-                </Typography>
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell>Color</TableCell>
+                  <TableCell>Talla</TableCell>
+                  <TableCell>Stock</TableCell>
+                  <TableCell>Precio</TableCell>
+                  <TableCell>Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredStock.map((item) => {
+                  const stockClass =
+                    item.quantity <= item.minStock
+                      ? 'inventory-item-details--low-stock'
+                      : item.quantity <= item.minStock * 1.2
+                      ? 'inventory-item-details--warning-stock'
+                      : '';
 
-                <Grid container spacing={2}>
-                  {stockItems.length > 0 ? (
-                    stockItems.map((item) => (
-                      <Grid item xs={12} sm={6} md={4} key={item.id}>
-                        <Paper className="inventory-item-card">
-                          <Typography className="inventory-item-details">
-                            Color: {item.color}{' '}
-                            {item.hexColor && (
-                            <span
-                              className="inventory-item-color-preview"
-                              style={{ backgroundColor: item.hexColor }}
-                            />
-
-                            )}
-                          </Typography>
-                          {item.size && (
-                            <Typography className="inventory-item-details">
-                              Talla: {item.size}
-                            </Typography>
-                          )}
-                          <Typography className={`inventory-item-details ${item.quantity <= item.minStock ? 'inventory-item-details--low-stock' : item.quantity <= item.minStock * 1.2 ? 'inventory-item-details--warning-stock' : ''}`}>
-                            Stock: {item.quantity} (Mín: {item.minStock})
-                          </Typography>
-                          <Typography className="inventory-item-details">
-                            Precio: ${item.price.toLocaleString()}
-                          </Typography>
-
-                          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => {
-                                setEditingStock(item);
-                                setOpenAddStock(true);
-                              }}
-                              className="inventory-button inventory-button--outlined inventory-button--small"
-                            >
-                              Editar
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              color="error"
-                              onClick={() => handleDeleteStock(item.id)}
-                              className="inventory-button inventory-button--error inventory-button--small"
-                            >
-                              Eliminar
-                            </Button>
-                          </Box>
-                        </Paper>
-                      </Grid>
-                    ))
-                  ) : (
-                    <p className="inventory-empty">No hay stock para este tipo.</p>
-                  )}
-                </Grid>
-              </Box>
-            );
-          })}
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        {item.itemType?.iconName && iconMap[item.itemType.iconName]
+                          ? React.createElement(iconMap[item.itemType.iconName], { size: 18, style: { marginRight: 4, verticalAlign: 'middle' } })
+                          : null}
+                        {item.itemType?.name}
+                      </TableCell>
+                      <TableCell>
+                        {item.color}{' '}
+                        {item.hexColor && (
+                          <span
+                            className="inventory-item-color-preview"
+                            style={{
+                              backgroundColor: item.hexColor,
+                              display: 'inline-block',
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              marginLeft: 6,
+                            }}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell>{item.size || '-'}</TableCell>
+                      <TableCell className={stockClass}>
+                        {item.quantity} (Mín: {item.minStock})
+                      </TableCell>
+                      <TableCell>${item.price.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => {
+                              setEditingStock(item);
+                              setOpenAddStock(true);
+                            }}
+                            className="inventory-button inventory-button--outlined inventory-button--small"
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            onClick={() => handleDeleteStock(item.id)}
+                            className="inventory-button inventory-button--error inventory-button--small"
+                          >
+                            Eliminar
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Paper>
 
         {/* Sección de Packs */}
