@@ -87,3 +87,23 @@ export async function forceDeleteItemStock(id) {
     throw error.response?.data || error.message;
   }
 }
+
+export async function addManualStock(id, quantity) {
+  try {
+    const response = await axios.patch(`/item-stocks/adjust/${id}/add`, { quantity });
+    return response.data.data;
+  } catch (error) {
+    console.error("Error adding manual stock:", error);
+    throw error.response?.data || error.message;
+  }
+}
+
+export async function removeManualStock(id, quantity) {
+  try {
+    const response = await axios.patch(`/item-stocks/adjust/${id}/remove`, { quantity });
+    return response.data.data;
+  } catch (error) {
+    console.error("Error removing manual stock:", error);
+    throw error.response?.data || error.message;
+  }
+}

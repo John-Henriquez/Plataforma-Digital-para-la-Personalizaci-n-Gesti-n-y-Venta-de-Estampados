@@ -442,6 +442,63 @@ export const itemStockService = {
       console.error("Error en emptyTrash:", error);
       return [null, "Error al vaciar la papelera"];
     }
-  }
+  },
 
+  async adjustStock(itemId, amount, userId, manualReason = "") {
+    return await AppDataSource.transaction(async transactionalEntityManager => {
+      const stockRepo = transactionalEntityManager.getRepository(ItemStock);
+      const movementRepo = transactionalEntityManager.getRepository(InventoryMovement);
+
+      const item = await stockRepo.findOne({ 
+        where: { id: itemId }, 
+        relations: ["itemType"] 
+      });
+
+      if (!item) {
+        return [null, "Item no encontrado"];
+      }
+
+      if (!item.isActive) {
+        return [null, "No se puede ajustar un item desactivado"];
+      }
+
+      const newQuantity = item.quantity + amount;
+
+      if (newQuantity < 0) {
+        return [null, "No se puede dejar el stock en negativo"];
+      }
+
+      const originalQuantity = item.quantity;
+      item.quantity = newQuantity;
+
+      const updatedItem = await stockRepo.save(item);
+
+      const isEntry = amount > 0;
+
+      const { operation, reason } = generateInventoryReason("adjust", isEntry ? "in" : "out");
+      const movementReason = manualReason || reason;
+
+
+      await movementRepo.save({
+        type: "ajuste",
+        quantity: Math.abs(amount),
+        operation,
+        reason: movementReason,
+        itemStock: item,
+        createdBy: { id: userId },
+        changes: {
+          quantity: {
+            oldValue: originalQuantity,
+            newValue: newQuantity
+          }
+        },
+        ...createItemSnapshot(item)
+      });
+
+      return [updatedItem, null];
+    }).catch(err => {
+      console.error("Error en adjustStock:", err);
+      return [null, "Error al ajustar el stock"];
+    });
+  }
 }

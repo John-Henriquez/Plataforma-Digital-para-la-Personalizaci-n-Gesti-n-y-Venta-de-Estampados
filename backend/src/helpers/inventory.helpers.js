@@ -5,8 +5,18 @@ export function generateInventoryReason(action, field) {
       reason: "Ingreso inicial de stock",
     },
     adjust: {
-      operation: "adjust",
-      reason: "Ajuste de inventario",
+      in: {
+        operation: "adjust_in",
+        reason: "Ajuste manual de entrada"
+      },
+      out: {
+        operation: "adjust_out",
+        reason: "Ajuste manual de salida"
+      },
+      default: {
+        operation: "adjust",
+        reason: "Ajuste de inventario"
+      }
     },
     update: {
       quantity: {
@@ -74,6 +84,12 @@ export function generateInventoryReason(action, field) {
       console.warn(`No se encontró metadata válida para el campo '${field}' en acción 'update'`);
     }
     return fieldMeta;
+  }
+
+  if (action === "adjust") {
+  const direction = field || "default"; 
+  const result = metadata.adjust[direction] || metadata.adjust.default;
+  return result;
   }
 
   const result = metadata[action] || {

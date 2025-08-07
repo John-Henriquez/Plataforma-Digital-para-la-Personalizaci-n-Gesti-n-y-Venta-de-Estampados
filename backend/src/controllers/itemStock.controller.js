@@ -180,4 +180,58 @@ export const itemStockController = {
             handleErrorServer(res, 500, error.message);
         }
     },
+
+    async addStock(req, res) {
+        try {
+            const { id } = req.params;
+            const { quantity } = req.body;
+            const userId = req.user?.id;
+
+            if (!id || isNaN(parseInt(id))) {
+                return handleErrorClient(res, 400, "ID debe ser un número");
+            }
+
+            if (!quantity || typeof quantity !== "number" || quantity <= 0) {
+                return handleErrorClient(res, 400, "La cantidad debe ser un número positivo");
+            }
+
+            const [updatedItem, error] = 
+                await itemStockService.adjustStock(parseInt(id), quantity, userId);
+
+
+            if (error) return handleErrorClient(res, 400, error);
+
+            handleSuccess(res, 200, "Stock añadido correctamente", updatedItem);
+        } catch (error) {
+            console.error("Error en addStock controller:", error.message, error.stack);
+            handleErrorServer(res, 500, "Error interno del servidor");
+        }
+    },
+
+    async removeStock(req, res) {
+        try {
+            const { id } = req.params;
+            const { quantity } = req.body;
+            const userId = req.user?.id;
+
+            if (!id || isNaN(parseInt(id))) {
+                return handleErrorClient(res, 400, "ID debe ser un número");
+            }
+
+            if (!quantity || typeof quantity !== "number" || quantity <= 0) {
+                return handleErrorClient(res, 400, "La cantidad debe ser un número positivo");
+            }
+
+            const [updatedItem, error] = 
+                await itemStockService.adjustStock(parseInt(id), -quantity, userId);
+
+
+            if (error) return handleErrorClient(res, 400, error);
+
+            handleSuccess(res, 200, "Stock reducido correctamente", updatedItem);
+        } catch (error) {
+            console.error("Error en removeStock controller:", error.message, error.stack);
+            handleErrorServer(res, 500, "Error interno del servidor");
+        }
+    },
 }
